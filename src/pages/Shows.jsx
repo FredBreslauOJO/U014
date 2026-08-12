@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { CalendarDays, Plus, ImagePlus, X, Search, MapPin, Music2 } from "lucide-react";
-import { supabase } from "@/supabase"; // Nossa nova ponte!
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
+import { CalendarDays, Plus, ImagePlus, X, Search, MapPin, Music2, Share2, Check } from "lucide-react";
+import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,13 +37,19 @@ export default function Shows() {
   const [selectedCity, setSelectedCity] = useState("all");
   const [selectedGenre, setSelectedGenre] = useState("all");
 
+  // Rastreamento para destacar e rolar até o show vindo pela URL (?show=ID)
+  const [searchParams] = useSearchParams();
+  const highlightedShowId = searchParams.get("show") || searchParams.get("id");
+  const showRefs = useRef({});
+  const [copiedId, setCopiedId] = useState(null);
+
   const [form, setForm] = useState({ 
     title: "", bands: [], venues: [], city: "", address: "", 
     date: "", time: "", description: "", ticket_url: "", flyer_url: "",
     genres: []
   });
 
-  // 1. LER DADOS DO SUPABASE
+  // LER DADOS DO SUPABASE
   const load = async () => {
     const [
       { data: sData },
@@ -61,10 +68,52 @@ export default function Shows() {
 
   useEffect(() => { load(); }, []);
 
+  // Rola suavemente até o show compartilhado na URL (?show=ID)
+  useEffect(() => {
+    if (highlightedShowId && shows.length > 0) {
+      setTimeout(() => {
+        const element = showRefs.current[highlightedShowId];
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 300);
+    }
+  }, [highlightedShowId, shows]);
+
+  // Função universal de compartilhamento (Celular + Fallback para Copiar Link)
+  const handleShare = async (title, text, url, id = null) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+        return;
+      } catch (err) {
+        // Usuário fechou a janela do compartilhamento nativo
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      if (id) {
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+      }
+      toast({
+        title: "Link copiado!",
+        description: "O link foi copiado para sua área de transferência.",
+      });
+    } catch (err) {
+      toast({
+        title: "Erro ao copiar",
+        description: "Não foi possível copiar o link.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   const [uploading, setUploading] = useState(false);
 
-  // 2. UPLOAD DE FLYER PRO SUPABASE STORAGE
+  // UPLOAD DE FLYER PRO SUPABASE STORAGE
   const uploadFlyer = async (file) => {
     if (!file) return;
     setUploading(true);
@@ -116,14 +165,13 @@ export default function Shows() {
     setOpen(true);
   };
 
-  // 3. SALVAR / ATUALIZAR NO SUPABASE
+  // SALVAR / ATUALIZAR NO SUPABASE
   const save = async () => {
     if (!form.title.trim() || !form.date) { 
       toast({ title: "Título e data são obrigatórios", variant: "destructive" }); 
       return; 
     }
     
-    // O Postgres do Supabase aceita Arrays perfeitamente, sem gambiarras!
     const payload = {
       title: form.title,
       bands: form.bands,
@@ -174,7 +222,7 @@ export default function Shows() {
       if (s.genres && Array.isArray(s.genres)) {
         s.genres.forEach(g => setG.add(g.trim()));
       }
-      if (s.genre && typeof s.genre === "string") { // Garantia pros legados do CSV
+      if (s.genre && typeof s.genre === "string") {
         s.genre.split(",").forEach(g => setG.add(g.trim()));
       }
     });
@@ -218,123 +266,140 @@ export default function Shows() {
           </h1>
           <p className="text-[#808080] text-sm mt-1">Agenda da cena underground</p>
         </div>
-        {user && (
-          <>
-            <Button onClick={openCreate} className="bg-[#a8f776] text-black hover:bg-[#8fd862]">
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            onClick={() =>
+              handleShare(
+                "Agenda de Shows - Underground 014",
+                "Confira os próximos shows da cena underground!",
+                `${window.location.origin}/shows`
+              )
+            }
+            variant="outline"
+            className="border-[#222] bg-[#121212] text-white hover:bg-[#1a1a1a] font-bold"
+          >
+            <Share2 size={16} className="mr-1.5 text-[#a8f776]" /> Compartilhar Agenda
+          </Button>
+
+          {user && (
+            <Button onClick={openCreate} className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold">
               <Plus size={16} className="mr-1" /> Divulgar show
             </Button>
+          )}
+        </div>
 
-            <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
-              <DialogContent className="bg-[#121212] border-[#222] text-white max-w-lg max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-white">{editing ? "Editar show" : "Divulgar show"}</DialogTitle>
-                  <DialogDescription className="sr-only">Preencha as informações do show</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 pt-2">
-                  <div>
-                    <Label className="text-[#b0b0b0]">Título *</Label>
-                    <Input value={form.title} onChange={(e) => set("title", e.target.value)} className="bg-[#0a0a0a] border-[#222] mt-1" />
-                  </div>
-                  
-                  <div>
-                    <Label className="text-[#b0b0b0]">Estilos / Identidade do Evento</Label>
-                    <div className="mt-1">
-                      <TagInput
-                        suggestions={GENRES.map((g) => ({ id: g, name: g }))}
-                        value={(form.genres || []).map((g) => ({ id: g, name: g }))}
-                        onChange={(v) => {
-                          const cleanGenres = (v || []).map(item => item.name).filter(Boolean);
-                          set("genres", cleanGenres);
-                        }}
-                        placeholder="Ex: Rap, Techno, Nu Metal..."
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-[#b0b0b0]">Bandas</Label>
-                    <div className="mt-1">
-                      <TagInput
-                        suggestions={bands.map((b) => ({ id: b.id, name: b.name }))}
-                        value={form.bands}
-                        onChange={(v) => set("bands", v)}
-                        placeholder="Digite o nome da banda e pressione Enter"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label className="text-[#b0b0b0]">Casas de shows</Label>
-                    <div className="mt-1">
-                      <TagInput
-                        suggestions={venues.map((v) => ({ id: v.id, name: v.name }))}
-                        value={form.venues}
-                        onChange={(v) => set("venues", v)}
-                        placeholder="Digite o nome da casa e pressione Enter"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-[#b0b0b0]">Cidade</Label>
-                      <Input value={form.city} onChange={(e) => set("city", e.target.value)} placeholder="Ex: Bauru" className="bg-[#0a0a0a] border-[#222] mt-1" />
-                    </div>
-                    <div>
-                      <Label className="text-[#b0b0b0]">Endereço</Label>
-                      <Input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="Rua, número" className="bg-[#0a0a0a] border-[#222] mt-1" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-[#b0b0b0]">Data *</Label>
-                      <Input type="date" value={form.date} onChange={(e) => set("date", e.target.value)} className="bg-[#0a0a0a] border-[#222] mt-1" />
-                    </div>
-                    <div>
-                      <Label className="text-[#b0b0b0]">Horário</Label>
-                      <Input value={form.time} onChange={(e) => set("time", e.target.value)} placeholder="22:00" className="bg-[#0a0a0a] border-[#222] mt-1" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-[#b0b0b0]">Descrição</Label>
-                    <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} className="bg-[#0a0a0a] border-[#222] mt-1" />
-                  </div>
-
-                  <div>
-                    <Label className="text-[#b0b0b0]">Link de ingressos</Label>
-                    <Input value={form.ticket_url} onChange={(e) => set("ticket_url", e.target.value)} className="bg-[#0a0a0a] border-[#222] mt-1" />
-                  </div>
-
-                  <div>
-                    <Label className="text-[#b0b0b0]">Flyer digital</Label>
-                    <div className="mt-1">
-                      {form.flyer_url ? (
-                        <div className="relative w-32 h-32 rounded-md overflow-hidden border border-[#222]">
-                          <img src={form.flyer_url} alt="flyer" className="w-full h-full object-cover" />
-                          <button type="button" onClick={() => set("flyer_url", "")} className="absolute top-1 right-1 bg-black/70 rounded-full p-1 hover:bg-black transition-colors">
-                            <X size={14} className="text-white" />
-                          </button>
-                        </div>
-                      ) : (
-                        <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-[#333] rounded-md cursor-pointer hover:bg-[#1a1a1a] transition-colors">
-                          {uploading ? <span className="text-xs text-[#707070]">Enviando...</span> : (<><ImagePlus size={18} className="text-[#606060]" /><span className="text-xs text-[#606060] mt-1">Enviar flyer</span></>)}
-                          <input type="file" accept="image/*" className="hidden" onChange={(e) => uploadFlyer(e.target.files[0])} />
-                        </label>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="pt-2">
-                    <Button onClick={save} className="bg-[#a8f776] text-black hover:bg-[#8fd862] w-full font-bold">
-                      {editing ? "Salvar alterações" : "Divulgar Show"}
-                    </Button>
+        {user && (
+          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
+            <DialogContent className="bg-[#121212] border-[#222] text-white max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-white">{editing ? "Editar show" : "Divulgar show"}</DialogTitle>
+                <DialogDescription className="sr-only">Preencha as informações do show</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div>
+                  <Label className="text-[#b0b0b0]">Título *</Label>
+                  <Input value={form.title} onChange={(e) => set("title", e.target.value)} className="bg-[#0a0a0a] border-[#222] mt-1" />
+                </div>
+                
+                <div>
+                  <Label className="text-[#b0b0b0]">Estilos / Identidade do Evento</Label>
+                  <div className="mt-1">
+                    <TagInput
+                      suggestions={GENRES.map((g) => ({ id: g, name: g }))}
+                      value={(form.genres || []).map((g) => ({ id: g, name: g }))}
+                      onChange={(v) => {
+                        const cleanGenres = (v || []).map(item => item.name).filter(Boolean);
+                        set("genres", cleanGenres);
+                      }}
+                      placeholder="Ex: Rap, Techno, Nu Metal..."
+                    />
                   </div>
                 </div>
-              </DialogContent>
-            </Dialog>
-          </>
+
+                <div>
+                  <Label className="text-[#b0b0b0]">Bandas</Label>
+                  <div className="mt-1">
+                    <TagInput
+                      suggestions={bands.map((b) => ({ id: b.id, name: b.name }))}
+                      value={form.bands}
+                      onChange={(v) => set("bands", v)}
+                      placeholder="Digite o nome da banda e pressione Enter"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label className="text-[#b0b0b0]">Casas de shows</Label>
+                  <div className="mt-1">
+                    <TagInput
+                      suggestions={venues.map((v) => ({ id: v.id, name: v.name }))}
+                      value={form.venues}
+                      onChange={(v) => set("venues", v)}
+                      placeholder="Digite o nome da casa e pressione Enter"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-[#b0b0b0]">Cidade</Label>
+                    <Input value={form.city} onChange={(e) => set("city", e.target.value)} placeholder="Ex: Bauru" className="bg-[#0a0a0a] border-[#222] mt-1" />
+                  </div>
+                  <div>
+                    <Label className="text-[#b0b0b0]">Endereço</Label>
+                    <Input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="Rua, número" className="bg-[#0a0a0a] border-[#222] mt-1" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-[#b0b0b0]">Data *</Label>
+                    <Input type="date" value={form.date} onChange={(e) => set("date", e.target.value)} className="bg-[#0a0a0a] border-[#222] mt-1" />
+                  </div>
+                  <div>
+                    <Label className="text-[#b0b0b0]">Horário</Label>
+                    <Input value={form.time} onChange={(e) => set("time", e.target.value)} placeholder="22:00" className="bg-[#0a0a0a] border-[#222] mt-1" />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-[#b0b0b0]">Descrição</Label>
+                  <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} className="bg-[#0a0a0a] border-[#222] mt-1" />
+                </div>
+
+                <div>
+                  <Label className="text-[#b0b0b0]">Link de ingressos</Label>
+                  <Input value={form.ticket_url} onChange={(e) => set("ticket_url", e.target.value)} className="bg-[#0a0a0a] border-[#222] mt-1" />
+                </div>
+
+                <div>
+                  <Label className="text-[#b0b0b0]">Flyer digital</Label>
+                  <div className="mt-1">
+                    {form.flyer_url ? (
+                      <div className="relative w-32 h-32 rounded-md overflow-hidden border border-[#222]">
+                        <img src={form.flyer_url} alt="flyer" className="w-full h-full object-cover" />
+                        <button type="button" onClick={() => set("flyer_url", "")} className="absolute top-1 right-1 bg-black/70 rounded-full p-1 hover:bg-black transition-colors">
+                          <X size={14} className="text-white" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-[#333] rounded-md cursor-pointer hover:bg-[#1a1a1a] transition-colors">
+                        {uploading ? <span className="text-xs text-[#707070]">Enviando...</span> : (<><ImagePlus size={18} className="text-[#606060]" /><span className="text-xs text-[#606060] mt-1">Enviar flyer</span></>)}
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => uploadFlyer(e.target.files[0])} />
+                      </label>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="pt-2">
+                  <Button onClick={save} className="bg-[#a8f776] text-black hover:bg-[#8fd862] w-full font-bold">
+                    {editing ? "Salvar alterações" : "Divulgar Show"}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
 
@@ -365,18 +430,76 @@ export default function Shows() {
 
       <h2 className="text-sm font-bold text-[#a8f776] uppercase tracking-wider mb-3">Próximos</h2>
       <div className="space-y-2 mb-8">
-        {upcoming.map((s) => (
-          <ShowCard key={s.id} show={s} user={user} variant="upcoming" expanded={expandedId === s.id} onToggle={() => setExpandedId((cur) => (cur === s.id ? null : s.id))} onEdit={openEdit} onDelete={remove} />
-        ))}
+        {upcoming.map((s) => {
+          const isHighlighted = String(s.id) === String(highlightedShowId);
+          return (
+            <div
+              key={s.id}
+              ref={(el) => (showRefs.current[s.id] = el)}
+              className={`transition-all rounded-xl ${
+                isHighlighted
+                  ? "ring-2 ring-[#a8f776] shadow-lg shadow-[#a8f776]/20"
+                  : ""
+              }`}
+            >
+              <ShowCard
+                show={s}
+                user={user}
+                variant="upcoming"
+                expanded={expandedId === s.id}
+                onToggle={() => setExpandedId((cur) => (cur === s.id ? null : s.id))}
+                onEdit={openEdit}
+                onDelete={remove}
+                onShare={() =>
+                  handleShare(
+                    s.title,
+                    `Show: ${s.title} - ${s.date}`,
+                    `${window.location.origin}/shows?show=${s.id}`,
+                    s.id
+                  )
+                }
+              />
+            </div>
+          );
+        })}
       </div>
 
       {past.length > 0 && (
         <>
           <h2 className="text-sm font-bold text-[#505050] uppercase tracking-wider mb-3">Realizados</h2>
           <div className="space-y-2">
-            {past.map((s) => (
-              <ShowCard key={s.id} show={s} user={user} variant="past" expanded={expandedId === s.id} onToggle={() => setExpandedId((cur) => (cur === s.id ? null : s.id))} onEdit={openEdit} onDelete={remove} />
-            ))}
+            {past.map((s) => {
+              const isHighlighted = String(s.id) === String(highlightedShowId);
+              return (
+                <div
+                  key={s.id}
+                  ref={(el) => (showRefs.current[s.id] = el)}
+                  className={`transition-all rounded-xl ${
+                    isHighlighted
+                      ? "ring-2 ring-[#a8f776] shadow-lg shadow-[#a8f776]/20"
+                      : ""
+                  }`}
+                >
+                  <ShowCard
+                    show={s}
+                    user={user}
+                    variant="past"
+                    expanded={expandedId === s.id}
+                    onToggle={() => setExpandedId((cur) => (cur === s.id ? null : s.id))}
+                    onEdit={openEdit}
+                    onDelete={remove}
+                    onShare={() =>
+                      handleShare(
+                        s.title,
+                        `Show: ${s.title} - ${s.date}`,
+                        `${window.location.origin}/shows?show=${s.id}`,
+                        s.id
+                      )
+                    }
+                  />
+                </div>
+              );
+            })}
           </div>
         </>
       )}
