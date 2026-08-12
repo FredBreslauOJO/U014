@@ -11,7 +11,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import TagInput from "@/components/TagInput";
 import { GENRES } from "@/lib/genres";
-import { slugify } from "@/lib/slug";
 import { uploadImage } from "@/utils/upload";
 
 const emptyForm = () => ({
@@ -20,7 +19,6 @@ const emptyForm = () => ({
   logo_url: "", photo_url: "", gallery: [], links: [], collaborator_emails: [], videos: [],
 });
 
-// Extrai ID do YouTube
 const getYouTubeId = (url) => {
   if (!url) return null;
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -46,7 +44,17 @@ export default function BandRegister() {
   const loadMyBands = async () => {
     if (!user) return [];
     const { data: all } = await supabase.from("bands").select("*").order("created_date", { ascending: false });
-    const mine = (all || []).filter((b) => b.created_by_id === user.id || (Array.isArray(b.collaborator_emails) && b.collaborator_emails.includes(user.email)));
+    
+    // Filtro inteligente para reconhecer e-mail de contato, ID e lista de colaboradores
+    const mine = (all || []).filter(
+      (b) =>
+        b &&
+        (b.created_by_id === user.id ||
+          b.email?.toLowerCase() === user.email?.toLowerCase() ||
+          (Array.isArray(b.collaborator_emails) &&
+            b.collaborator_emails.map((e) => e?.toLowerCase()).includes(user.email?.toLowerCase())))
+    );
+    
     setMyBands(mine);
     return mine;
   };
@@ -206,7 +214,9 @@ export default function BandRegister() {
             <span className="font-medium">Cadastrar nova banda</span>
           </button>
           {myBands.map((b) => {
-            const owned = b.created_by_id === user?.id;
+            const owned =
+              b.created_by_id === user?.id ||
+              b.email?.toLowerCase() === user?.email?.toLowerCase();
             return (
               <button key={b.id} onClick={() => selectBand(b)} className="text-left bg-[#121212] hover:bg-[#181818] border border-[#1e1e1e] rounded-lg p-4 transition-colors flex gap-3">
                 <div className="w-16 h-16 rounded-md overflow-hidden bg-[#222] shrink-0 flex items-center justify-center">
@@ -273,7 +283,7 @@ export default function BandRegister() {
           </div>
         </section>
 
-        {/* NOVA SEÇÃO DE VÍDEOS */}
+        {/* GALERIA DE VÍDEOS */}
         <section className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-5 space-y-4">
           <div className="flex items-center gap-2">
             <Youtube size={18} className="text-red-500" />

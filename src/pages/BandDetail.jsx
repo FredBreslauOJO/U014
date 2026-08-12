@@ -110,7 +110,15 @@ export default function BandDetail() {
     toast({ title: "Link do perfil copiado!" });
   };
 
-  const isOwner = user && band && band.created_by_id === user.id;
+  // Validação estendida de Dono da Banda (ID do Criador, E-mail Principal ou Colaboradores)
+  const isOwner =
+    user &&
+    band &&
+    (band.created_by_id === user.id ||
+      band.email?.toLowerCase() === user.email?.toLowerCase() ||
+      (Array.isArray(band.collaborator_emails) &&
+        band.collaborator_emails.map((e) => e?.toLowerCase()).includes(user.email?.toLowerCase())));
+
   const gallery = band?.gallery || [];
   const videos = band?.videos || [];
 
