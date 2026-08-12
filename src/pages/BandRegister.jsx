@@ -43,18 +43,26 @@ export default function BandRegister() {
 
   const loadMyBands = async () => {
     if (!user) return [];
-    const { data: all } = await supabase.from("bands").select("*").order("created_date", { ascending: false });
+    const { data: all, error } = await supabase.from("bands").select("*").order("created_date", { ascending: false });
     
-    // Filtro inteligente para reconhecer e-mail de contato, ID e lista de colaboradores
-    const mine = (all || []).filter(
-      (b) =>
-        b &&
-        (b.created_by_id === user.id ||
-          b.email?.toLowerCase() === user.email?.toLowerCase() ||
-          (Array.isArray(b.collaborator_emails) &&
-            b.collaborator_emails.map((e) => e?.toLowerCase()).includes(user.email?.toLowerCase())))
-    );
+    if (error) {
+      console.error("Erro ao carregar bandas:", error);
+      return [];
+    }
+
+    const uEmail = user.email ? String(user.email).trim().toLowerCase() : "";
     
+    // Filtro sanitizado com trim e lowerCase
+    const mine = (all || []).filter((b) => {
+      if (!b) return false;
+      const createdByMatch = Boolean(b.created_by_id && String(b.created_by_id) === String(user.id));
+      const emailMatch = Boolean(b.email && uEmail && String(b.email).trim().toLowerCase() === uEmail);
+      const collabMatch = Array.isArray(b.collaborator_emails) &&
+        b.collaborator_emails.some(e => String(e).trim().toLowerCase() === uEmail);
+
+      return createdByMatch || emailMatch || collabMatch;
+    });
+
     setMyBands(mine);
     return mine;
   };
@@ -152,7 +160,11 @@ export default function BandRegister() {
     if (!form.name.trim()) { toast({ title: "Informe o nome da banda", variant: "destructive" }); return; }
     setSaving(true);
     try {
-      const payload = { ...form, created_by_id: user.id };
+      const payload = { 
+        ...form, 
+        created_by_id: user.id,
+        email: form.email ? form.email.trim() : user.email
+      };
       let saved;
       if (editingBand) {
         const { data, error } = await supabase.from("bands").update(payload).eq("id", editingBand.id).select().single();
@@ -214,9 +226,10 @@ export default function BandRegister() {
             <span className="font-medium">Cadastrar nova banda</span>
           </button>
           {myBands.map((b) => {
+            const uEmail = user?.email ? user.email.trim().toLowerCase() : "";
             const owned =
               b.created_by_id === user?.id ||
-              b.email?.toLowerCase() === user?.email?.toLowerCase();
+              (b.email && String(b.email).trim().toLowerCase() === uEmail);
             return (
               <button key={b.id} onClick={() => selectBand(b)} className="text-left bg-[#121212] hover:bg-[#181818] border border-[#1e1e1e] rounded-lg p-4 transition-colors flex gap-3">
                 <div className="w-16 h-16 rounded-md overflow-hidden bg-[#222] shrink-0 flex items-center justify-center">
