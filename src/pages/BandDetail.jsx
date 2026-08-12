@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Play, ExternalLink, CalendarDays, MapPin, MessageSquare, Trash2, Users, Instagram, Mail, Phone, Music2, Youtube, Facebook, Image as ImageIcon, X, ChevronLeft, ChevronRight, FileDown } from "lucide-react";
+import { Play, ExternalLink, CalendarDays, MapPin, MessageSquare, Trash2, Users, Instagram, Mail, Phone, Music2, Youtube, Facebook, Image as ImageIcon, X, ChevronLeft, ChevronRight, FileDown, Share2, Check } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import { usePlayer } from "@/lib/playerContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generatePressKitPDF } from "@/utils/generatePressKitPDF";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function BandDetail() {
   const { id, slug } = useParams();
   const targetParam = slug || id;
 
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { playTrackList } = usePlayer();
   const [band, setBand] = useState(null);
   const [tracks, setTracks] = useState([]);
@@ -23,8 +25,9 @@ export default function BandDetail() {
   const [loading, setLoading] = useState(true);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [lightbox, setLightbox] = useState(null);
+  const [activeVideo, setActiveVideo] = useState(null);
+  const [copied, setCopied] = useState(false);
 
-  // Helper para formatar URLs de imagens (corrige nomes curtos ou URLs antigas)
   const formatUrl = (url) => {
     if (!url) return "";
     let cleaned = String(url).replace("https://tgxzkvhqzyxjt.supabase.co", "https://otbjufhtgxzkvhqzyxjt.supabase.co");
@@ -67,7 +70,6 @@ export default function BandDetail() {
     setBand(b);
     const bandId = b.id;
 
-    // Busca faixas por ID ou pelo slug da banda
     const [tRes, sRes, nRes] = await Promise.all([
       supabase.from("tracks").select("*").or(`band_id.eq.${bandId},band_id.eq.${b.slug}`),
       supabase.from("shows").select("*").order("date", { ascending: false }),
@@ -90,8 +92,27 @@ export default function BandDetail() {
     setGeneratingPDF(false);
   };
 
+  const handleShareBand = async () => {
+    const bandUrl = `${window.location.origin}/${band.slug || band.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${band.name} - Underground 014`,
+          text: `Confira a página oficial da banda ${band.name}!`,
+          url: bandUrl,
+        });
+        return;
+      } catch (e) {}
+    }
+    await navigator.clipboard.writeText(bandUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast({ title: "Link do perfil copiado!" });
+  };
+
   const isOwner = user && band && band.created_by_id === user.id;
   const gallery = band?.gallery || [];
+  const videos = band?.videos || [];
 
   const renderWithLinks = (text) => {
     if (!text) return text;
@@ -182,7 +203,23 @@ export default function BandDetail() {
                   className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold"
                 >
                   <FileDown size={16} className="mr-1.5" />
-                  {generatingPDF ? "Gerando Press Kit..." : "BAIXAR PRESS KIT (PDF)"}
+                  {generatingPDF ? "Gerando..." : "PRESS KIT (PDF)"}
+                </Button>
+
+                <Button
+                  onClick={handleShareBand}
+                  variant="outline"
+                  className="border-[#333] text-white hover:bg-[#1a1a1a] font-bold"
+                >
+                  {copied ? (
+                    <>
+                      <Check size={16} className="mr-1.5 text-[#a8f776]" /> Copiado
+                    </>
+                  ) : (
+                    <>
+                      <Share2 size={16} className="mr-1.5 text-[#a8f776]" /> Compartilhar
+                    </>
+                  )}
                 </Button>
 
                 {isOwner && (
@@ -210,6 +247,41 @@ export default function BandDetail() {
               <section>
                 <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2"><Users size={16} /> Integrantes</h2>
                 <p className="text-[#c0c0c0] text-sm whitespace-pre-wrap">{band.members}</p>
+              </section>
+            )}
+
+            {/* SEÇÃO DE VÍDEOS & CLIPES */}
+            {videos.length > 0 && (
+              <section>
+                <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                  <Youtube size={18} className="text-red-500" /> Vídeos & Clipes
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {videos.map((v, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveVideo(v.youtube_id)}
+                      className="group bg-[#121212] border border-[#1e1e1e] hover:border-[#a8f776] rounded-lg overflow-hidden text-left transition-all"
+                    >
+                      <div className="aspect-video relative bg-black flex items-center justify-center overflow-hidden">
+                        <img
+                          src={`https://img.youtube.com/vi/${v.youtube_id}/hqdefault.jpg`}
+                          alt={v.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform opacity-90"
+                        />
+                        <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors" />
+                        <div className="w-10 h-10 rounded-full bg-red-600 group-hover:bg-red-500 text-white flex items-center justify-center shadow-lg transition-transform group-hover:scale-110">
+                          <Play size={18} fill="currentColor" className="ml-0.5" />
+                        </div>
+                      </div>
+                      <div className="p-2.5">
+                        <div className="text-xs font-bold text-white truncate group-hover:text-[#a8f776] transition-colors">
+                          {v.title}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </section>
             )}
 
@@ -242,64 +314,20 @@ export default function BandDetail() {
                   const url = t.url?.toLowerCase() || "";
                   const source = t.source?.toLowerCase() || "";
                   const isSpotify = source === "spotify" || url.includes("spotify.com");
-                  const isBandcamp = source === "bandcamp" || url.includes("bandcamp.com");
 
                   if (isSpotify) {
-                    const embedUrl = t.url
-                      .replace("open.spotify.com/", "open.spotify.com/embed/")
-                      .split("?")[0];
-
+                    const embedUrl = t.url.replace("open.spotify.com/", "open.spotify.com/embed/").split("?")[0];
                     return (
                       <div key={t.id || i} className="rounded-lg overflow-hidden border border-[#222] bg-[#121212]">
-                        <iframe
-                          src={embedUrl}
-                          width="100%"
-                          height="80"
-                          frameBorder="0"
-                          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                          loading="lazy"
-                          title={t.title || "Spotify Player"}
-                          className="rounded-md"
-                        />
+                        <iframe src={embedUrl} width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title={t.title || "Spotify Player"} />
                       </div>
-                    );
-                  }
-
-                  if (isBandcamp) {
-                    return (
-                      <a
-                        key={t.id || i}
-                        href={t.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-full flex items-center gap-3 p-3 rounded-md bg-[#121212] border border-[#1e1e1e] hover:border-[#629aa9]/50 hover:bg-[#181818] text-left group transition-all"
-                      >
-                        <span className="w-6 text-center text-sm text-[#707070]">{i + 1}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-white truncate group-hover:text-[#629aa9] transition-colors">{t.title}</div>
-                          <div className="text-xs text-[#629aa9] font-semibold flex items-center gap-1 mt-0.5">
-                            Bandcamp • Ouvir no Bandcamp
-                          </div>
-                        </div>
-                        <ExternalLink size={15} className="text-[#629aa9] shrink-0" />
-                      </a>
                     );
                   }
 
                   return (
                     <button
                       key={t.id || i}
-                      onClick={() =>
-                        playTrackList(
-                          playableTracks.map((x) => ({
-                            title: x.title,
-                            url: x.url,
-                            band_name: band.name,
-                            band_logo: formatUrl(band.logo_url || band.photo_url),
-                          })),
-                          playableTracks.findIndex((x) => x.id === t.id)
-                        )
-                      }
+                      onClick={() => playTrackList(playableTracks.map((x) => ({ title: x.title, url: x.url, band_name: band.name, band_logo: formatUrl(band.logo_url || band.photo_url) })), playableTracks.findIndex((x) => x.id === t.id))}
                       className="w-full flex items-center gap-3 p-2.5 rounded-md bg-[#121212] border border-[#1e1e1e] hover:bg-[#181818] text-left group transition-colors"
                     >
                       <span className="w-6 text-center text-sm text-[#707070] group-hover:hidden">{i + 1}</span>
@@ -315,43 +343,6 @@ export default function BandDetail() {
                   );
                 })}
                 {tracks.length === 0 && <p className="text-[#505050] text-sm py-4">Nenhuma música cadastrada ainda.</p>}
-              </div>
-            </section>
-
-            {band.links && band.links.length > 0 && (
-              <section>
-                <h2 className="text-lg font-bold text-white mb-3">Links</h2>
-                <div className="flex flex-wrap gap-2">
-                  {band.links.filter(Boolean).map((l, i) => (
-                    <a key={i} href={l.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-[#121212] border border-[#222] hover:bg-[#1a1a1a] rounded-md px-3 py-2 text-sm text-white">
-                      <ExternalLink size={14} className="text-[#a8f776]" /> {l.title || "Link"}
-                    </a>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            <section>
-              <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2"><CalendarDays size={16} /> Shows</h2>
-              <div className="space-y-2">
-                {shows.map((s) => (
-                  <div key={s.id} className="flex items-center gap-3 bg-[#121212] border border-[#1e1e1e] rounded-md p-3">
-                    <div className="w-11 h-11 rounded bg-[#1a1a1a] flex flex-col items-center justify-center shrink-0">
-                      <span className="text-[9px] text-[#707070] uppercase">{new Date(s.date).toLocaleDateString("pt-BR", { month: "short" })}</span>
-                      <span className="text-base font-bold text-white">{new Date(s.date).getDate()}</span>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm text-white font-medium truncate">{s.title}</div>
-                      <div className="text-xs text-[#808080] flex items-center gap-1">
-                        <MapPin size={11} /> {(s.venues?.map((v) => v.name).join(", ")) || s.venue_name || "—"} {s.time && `• ${s.time}`}
-                      </div>
-                    </div>
-                    {s.ticket_url && (
-                      <a href={s.ticket_url} target="_blank" rel="noreferrer" className="text-xs text-[#a8f776] underline shrink-0">Ingressos</a>
-                    )}
-                  </div>
-                ))}
-                {shows.length === 0 && <p className="text-[#505050] text-sm">Nenhum show agendado.</p>}
               </div>
             </section>
           </div>
@@ -414,6 +405,30 @@ export default function BandDetail() {
         </section>
       </div>
 
+      {/* MODAL DO PLAYER DE VÍDEO */}
+      {activeVideo && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setActiveVideo(null)}>
+          <div className="relative w-full max-w-4xl bg-[#121212] border border-[#222] rounded-xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setActiveVideo(null)}
+              className="absolute top-3 right-3 z-10 text-white/80 hover:text-white bg-black/60 rounded-full p-2 backdrop-blur-sm transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <div className="aspect-video w-full bg-black">
+              <iframe
+                src={`https://www.youtube.com/embed/${activeVideo}?autoplay=1`}
+                title="YouTube Video Player"
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LIGHTBOX DE FOTOS */}
       {lightbox !== null && gallery[lightbox] && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={() => setLightbox(null)}>
           <button className="absolute top-4 right-4 text-white/80 hover:text-white" onClick={() => setLightbox(null)}><X size={28} /></button>

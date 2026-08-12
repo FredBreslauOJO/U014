@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2, Music2, Upload, Save, ArrowLeft, UserPlus, Star, Pencil } from "lucide-react";
+import { Plus, Trash2, Music2, Upload, Save, ArrowLeft, UserPlus, Star, Pencil, Youtube, Play } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,16 @@ import { uploadImage } from "@/utils/upload";
 const emptyForm = () => ({
   name: "", bio: "", genres: [], performance_type: "ambos", city: "",
   whatsapp: "", email: "", instagram: "", youtube: "", facebook: "", members: "",
-  logo_url: "", photo_url: "", gallery: [], links: [], collaborator_emails: [],
+  logo_url: "", photo_url: "", gallery: [], links: [], collaborator_emails: [], videos: [],
 });
+
+// Extrai ID do YouTube
+const getYouTubeId = (url) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = String(url).match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
 
 export default function BandRegister() {
   const navigate = useNavigate();
@@ -26,12 +34,12 @@ export default function BandRegister() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [inviting, setInviting] = useState(false);
   const [myBands, setMyBands] = useState([]);
   const [editingBand, setEditingBand] = useState(null);
   const [view, setView] = useState("list");
   const [tracks, setTracks] = useState([]);
   const [newTrack, setNewTrack] = useState({ title: "", url: "", source: "youtube" });
+  const [newVideo, setNewVideo] = useState({ title: "", url: "" });
   const [genreSuggestions, setGenreSuggestions] = useState(GENRES);
   const [form, setForm] = useState(emptyForm());
 
@@ -40,9 +48,6 @@ export default function BandRegister() {
     const { data: all } = await supabase.from("bands").select("*").order("created_date", { ascending: false });
     const mine = (all || []).filter((b) => b.created_by_id === user.id || (Array.isArray(b.collaborator_emails) && b.collaborator_emails.includes(user.email)));
     setMyBands(mine);
-    const used = new Set();
-    (all || []).forEach((b) => (b.genres || []).forEach((g) => used.add(g)));
-    setGenreSuggestions([...new Set([...GENRES, ...used])].sort((a, b) => a.localeCompare(b)));
     return mine;
   };
 
@@ -58,7 +63,15 @@ export default function BandRegister() {
 
   const selectBand = async (b) => {
     setEditingBand(b);
-    setForm({ ...emptyForm(), ...b, gallery: b.gallery || [], links: b.links || [], genres: b.genres || (b.genre ? [b.genre] : []), collaborator_emails: b.collaborator_emails || [] });
+    setForm({ 
+      ...emptyForm(), 
+      ...b, 
+      gallery: b.gallery || [], 
+      links: b.links || [], 
+      videos: b.videos || [],
+      genres: b.genres || (b.genre ? [b.genre] : []), 
+      collaborator_emails: b.collaborator_emails || [] 
+    });
     try {
       const { data: t } = await supabase.from("tracks").select("*").eq("band_id", b.id);
       setTracks(t || []);
@@ -73,7 +86,6 @@ export default function BandRegister() {
     setView("edit");
   };
 
-  // Upload individual com conversão WebP
   const uploadFile = async (file, field) => {
     try {
       toast({ title: "Otimizando e enviando imagem..." });
@@ -85,7 +97,6 @@ export default function BandRegister() {
     }
   };
 
-  // Upload de Galeria com conversão WebP em lote
   const uploadGallery = async (files) => {
     try {
       toast({ title: "Otimizando imagens da galeria..." });
@@ -103,14 +114,30 @@ export default function BandRegister() {
 
   const removeGalleryImage = (i) => setForm((f) => ({ ...f, gallery: (f.gallery || []).filter((_, idx) => idx !== i) }));
 
-  const RESERVED = ["bands", "shows", "venues", "news", "threads", "contact", "my-band", "login", "register", "forgot-password", "reset-password"];
-  const generateSlug = async (name, excludeId) => {
-    const base = slugify(name) || "banda";
-    const { data: all } = await supabase.from("bands").select("slug, id");
-    const taken = new Set([...RESERVED, ...(all || []).filter((b) => b.id !== excludeId).map((b) => b.slug).filter(Boolean)]);
-    let slug = base, i = 2;
-    while (taken.has(slug)) { slug = `${base}-${i++}`; }
-    return slug;
+  const addVideo = () => {
+    if (!newVideo.url.trim()) {
+      toast({ title: "Informe a URL do vídeo do YouTube", variant: "destructive" });
+      return;
+    }
+    const ytId = getYouTubeId(newVideo.url);
+    if (!ytId) {
+      toast({ title: "URL do YouTube inválida", variant: "destructive" });
+      return;
+    }
+
+    const videoObj = {
+      title: newVideo.title.trim() || "Vídeo",
+      url: newVideo.url.trim(),
+      youtube_id: ytId,
+    };
+
+    setForm((f) => ({ ...f, videos: [...(f.videos || []), videoObj] }));
+    setNewVideo({ title: "", url: "" });
+    toast({ title: "Vídeo adicionado!" });
+  };
+
+  const removeVideo = (index) => {
+    setForm((f) => ({ ...f, videos: (f.videos || []).filter((_, i) => i !== index) }));
   };
 
   const save = async () => {
@@ -118,12 +145,6 @@ export default function BandRegister() {
     setSaving(true);
     try {
       const payload = { ...form, created_by_id: user.id };
-      if (!editingBand) {
-        payload.slug = await generateSlug(form.name);
-      } else if (!editingBand.slug) {
-        payload.slug = await generateSlug(form.name, editingBand.id);
-      }
-      
       let saved;
       if (editingBand) {
         const { data, error } = await supabase.from("bands").update(payload).eq("id", editingBand.id).select().single();
@@ -172,10 +193,6 @@ export default function BandRegister() {
     setTracks(tracks.filter((t) => t.id !== tid));
   };
 
-  const addLink = () => setForm((f) => ({ ...f, links: [...f.links, { title: "", url: "" }] }));
-  const updateLink = (i, k, v) => setForm((f) => { const links = [...f.links]; links[i] = { ...links[i], [k]: v }; return { ...f, links }; });
-  const removeLink = (i) => setForm((f) => ({ ...f, links: f.links.filter((_, idx) => idx !== i) }));
-
   if (loading) return <div className="flex items-center justify-center h-full text-[#606060]">Carregando...</div>;
 
   if (view === "list") {
@@ -219,7 +236,7 @@ export default function BandRegister() {
         <ArrowLeft size={16} /> Minhas bandas
       </button>
       <h1 className="text-3xl font-black text-white mb-1">{editingBand ? "Editar banda" : "Cadastrar banda"}</h1>
-      <p className="text-[#808080] text-sm mb-6">Gerencie a página da sua banda — bio, mídias, contatos e playlist.</p>
+      <p className="text-[#808080] text-sm mb-6">Gerencie a página da sua banda — bio, vídeos, mídias e contatos.</p>
 
       <div className="space-y-6">
         <section className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-5 space-y-4">
@@ -256,8 +273,56 @@ export default function BandRegister() {
           </div>
         </section>
 
+        {/* NOVA SEÇÃO DE VÍDEOS */}
         <section className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-5 space-y-4">
-          <h2 className="text-sm font-bold text-[#a8f776] uppercase tracking-wider">Imagens (Conversão automática para WebP)</h2>
+          <div className="flex items-center gap-2">
+            <Youtube size={18} className="text-red-500" />
+            <h2 className="text-sm font-bold text-[#a8f776] uppercase tracking-wider">Galeria de Vídeos (YouTube)</h2>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-2">
+            <Input
+              value={newVideo.title}
+              onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })}
+              placeholder="Título (ex: Clipe Oficial, Ao Vivo...)"
+              className="bg-[#0a0a0a] border-[#222] text-white"
+            />
+            <Input
+              value={newVideo.url}
+              onChange={(e) => setNewVideo({ ...newVideo, url: e.target.value })}
+              placeholder="https://www.youtube.com/watch?v=..."
+              className="bg-[#0a0a0a] border-[#222] text-white sm:col-span-2"
+            />
+          </div>
+          <Button onClick={addVideo} type="button" className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold text-xs">
+            <Plus size={14} className="mr-1" /> Adicionar Vídeo
+          </Button>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
+            {(form.videos || []).map((v, i) => (
+              <div key={i} className="relative bg-[#0e0e0e] border border-[#222] rounded-md overflow-hidden group">
+                <div className="aspect-video relative bg-black flex items-center justify-center">
+                  <img
+                    src={`https://img.youtube.com/vi/${v.youtube_id}/hqdefault.jpg`}
+                    alt={v.title}
+                    className="w-full h-full object-cover opacity-80"
+                  />
+                  <Play size={24} className="absolute text-white drop-shadow" />
+                  <button
+                    onClick={() => removeVideo(i)}
+                    type="button"
+                    className="absolute top-1 right-1 bg-black/80 text-red-400 rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+                <div className="p-2 text-xs text-white font-medium truncate">{v.title}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-5 space-y-4">
+          <h2 className="text-sm font-bold text-[#a8f776] uppercase tracking-wider">Imagens</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <Label className="text-[#b0b0b0]">Logo</Label>
