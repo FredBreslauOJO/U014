@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Play, ExternalLink, CalendarDays, MapPin, MessageSquare, Trash2, Users, Instagram, Mail, Phone, Music2, Youtube, Facebook, Image as ImageIcon, X, ChevronLeft, ChevronRight, FileDown, Share2, Check } from "lucide-react";
+import { Play, ExternalLink, CalendarDays, MapPin, MessageSquare, Trash2, Users, Instagram, Mail, Phone, Music2, Youtube, Facebook, Image as ImageIcon, X, ChevronLeft, ChevronRight, FileDown, Share2, Check, Pencil } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import { usePlayer } from "@/lib/playerContext";
@@ -110,14 +110,19 @@ export default function BandDetail() {
     toast({ title: "Link do perfil copiado!" });
   };
 
-  // Validação estendida de Dono da Banda (ID do Criador, E-mail Principal ou Colaboradores)
-  const isOwner =
-    user &&
-    band &&
-    (band.created_by_id === user.id ||
-      band.email?.toLowerCase() === user.email?.toLowerCase() ||
-      (Array.isArray(band.collaborator_emails) &&
-        band.collaborator_emails.map((e) => e?.toLowerCase()).includes(user.email?.toLowerCase())));
+  // Lógica blindada para validar se o usuário atual é Dono ou Colaborador
+  const isOwner = useMemo(() => {
+    if (!user || !band) return false;
+    const uEmail = user.email ? String(user.email).trim().toLowerCase() : "";
+    const bEmail = band.email ? String(band.email).trim().toLowerCase() : "";
+    
+    const createdByMatch = Boolean(band.created_by_id && String(band.created_by_id) === String(user.id));
+    const emailMatch = Boolean(bEmail && uEmail && bEmail === uEmail);
+    const collabMatch = Array.isArray(band.collaborator_emails) &&
+      band.collaborator_emails.some(e => String(e).trim().toLowerCase() === uEmail);
+
+    return createdByMatch || emailMatch || collabMatch;
+  }, [user, band]);
 
   const gallery = band?.gallery || [];
   const videos = band?.videos || [];
@@ -231,8 +236,8 @@ export default function BandDetail() {
                 </Button>
 
                 {isOwner && (
-                  <Button onClick={() => navigate("/my-band")} variant="outline" className="border-[#333] text-white hover:bg-[#1a1a1a]">
-                    Editar página
+                  <Button onClick={() => navigate("/my-band")} className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold">
+                    <Pencil size={15} className="mr-1.5" /> Editar página
                   </Button>
                 )}
               </div>
@@ -258,7 +263,7 @@ export default function BandDetail() {
               </section>
             )}
 
-            {/* SEÇÃO DE VÍDEOS & CLIPES */}
+            {/* VÍDEOS */}
             {videos.length > 0 && (
               <section>
                 <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
@@ -413,7 +418,7 @@ export default function BandDetail() {
         </section>
       </div>
 
-      {/* MODAL DO PLAYER DE VÍDEO */}
+      {/* PLAYER VÍDEO */}
       {activeVideo && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setActiveVideo(null)}>
           <div className="relative w-full max-w-4xl bg-[#121212] border border-[#222] rounded-xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
@@ -436,7 +441,7 @@ export default function BandDetail() {
         </div>
       )}
 
-      {/* LIGHTBOX DE FOTOS */}
+      {/* LIGHTBOX FOTOS */}
       {lightbox !== null && gallery[lightbox] && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={() => setLightbox(null)}>
           <button className="absolute top-4 right-4 text-white/80 hover:text-white" onClick={() => setLightbox(null)}><X size={28} /></button>
