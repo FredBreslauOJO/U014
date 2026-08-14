@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Play, ExternalLink, CalendarDays, MapPin, MessageSquare, Trash2, Users, Instagram, Mail, Phone, Music2, Youtube, Facebook, Image as ImageIcon, X, ChevronLeft, ChevronRight, FileDown, Share2, Check, Pencil } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
-import { usePlayer } from "@/lib/playerContext";
+import { usePlayer, getSpotifyEmbed } from "@/lib/playerContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generatePressKitPDF } from "@/utils/generatePressKitPDF";
@@ -329,12 +329,14 @@ export default function BandDetail() {
                   const isSpotify = source === "spotify" || url.includes("spotify.com");
 
                   if (isSpotify) {
-                    const embedUrl = t.url.replace("open.spotify.com/", "open.spotify.com/embed/").split("?")[0];
-                    return (
-                      <div key={t.id || i} className="rounded-lg overflow-hidden border border-[#222] bg-[#121212]">
-                        <iframe src={embedUrl} width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title={t.title || "Spotify Player"} />
-                      </div>
-                    );
+                    const embedUrl = getSpotifyEmbed(t.url);
+                    if (embedUrl) {
+                      return (
+                        <div key={t.id || i} className="rounded-lg overflow-hidden border border-[#222] bg-[#121212]">
+                          <iframe src={embedUrl} width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title={t.title || "Spotify Player"} />
+                        </div>
+                      );
+                    }
                   }
 
                   return (

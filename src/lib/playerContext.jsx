@@ -90,9 +90,9 @@ export function getYoutubeId(url) {
   return m ? m[1] : null;
 }
 
-// Helper to extract Spotify track/album/playlist id
+// Helper to extract Spotify track/album/playlist id (handles intl-pt/ and other locales)
 export function getSpotifyEmbed(url) {
-  const m = url.match(/open\.spotify\.com\/(track|album|playlist|artist)\/([A-Za-z0-9]+)/);
+  const m = url.match(/open\.spotify\.com\/(?:intl-\w+\/)?(track|album|playlist|artist)\/([A-Za-z0-9]+)/);
   return m ? `https://open.spotify.com/embed/${m[1]}/${m[2]}` : null;
 }
 
