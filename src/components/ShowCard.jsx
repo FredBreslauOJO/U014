@@ -28,7 +28,12 @@ export default function ShowCard({
       user.role === "admin" ||
       user.user_metadata?.role === "admin");
 
-  const formattedDate = new Date(show.date).toLocaleDateString("pt-BR", {
+  const getDateInLocalTimezone = (dateStr) => {
+    const [year, month, day] = dateStr.split('-');
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  };
+
+  const formattedDate = getDateInLocalTimezone(show.date).toLocaleDateString("pt-BR", {
     weekday: "short",
     day: "2-digit",
     month: "short",
@@ -48,10 +53,10 @@ export default function ShowCard({
           {/* BLOCO DA DATA */}
           <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-[#181818] border border-[#2a2a2a] flex flex-col items-center justify-center shrink-0 shadow-inner">
             <span className="text-[10px] text-[#a8f776] uppercase font-extrabold tracking-wider">
-              {new Date(show.date).toLocaleDateString("pt-BR", { month: "short" })}
+              {getDateInLocalTimezone(show.date).toLocaleDateString("pt-BR", { month: "short" })}
             </span>
             <span className="text-2xl md:text-3xl font-black text-white leading-none mt-0.5">
-              {new Date(show.date).getDate()}
+              {getDateInLocalTimezone(show.date).getDate()}
             </span>
           </div>
 

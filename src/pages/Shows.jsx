@@ -79,6 +79,11 @@ export default function Shows() {
     }
   }, [highlightedShowId, shows]);
 
+  const getDateInLocalTimezone = (dateStr) => {
+    const [year, month, day] = dateStr.split('-');
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  };
+
   const handleShare = async (title, text, url, id = null) => {
     if (navigator.share) {
       try {
@@ -441,7 +446,7 @@ export default function Shows() {
               onShare={() =>
                 handleShare(
                   s.title,
-                  `Show: ${s.title} - ${new Date(s.date).toLocaleDateString("pt-BR")}`,
+                  `Show: ${s.title} - ${getDateInLocalTimezone(s.date).toLocaleDateString("pt-BR")}`,
                   `${window.location.origin}/shows?show=${s.id}`,
                   s.id
                 )
@@ -469,7 +474,7 @@ export default function Shows() {
                   onShare={() =>
                     handleShare(
                       s.title,
-                      `Show: ${s.title} - ${new Date(s.date).toLocaleDateString("pt-BR")}`,
+                      `Show: ${s.title} - ${getDateInLocalTimezone(s.date).toLocaleDateString("pt-BR")}`,
                       `${window.location.origin}/shows?show=${s.id}`,
                       s.id
                     )
