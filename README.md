@@ -37,6 +37,48 @@ docker compose -f compose.yml up -d --build
 
 Run the default build task with `Ctrl+Shift+B`.
 
+## Supabase migrations & backups
+
+The project is linked to its Supabase project via `supabase/config.toml`. No migration files exist yet — the schema was built by hand in the dashboard, so the first step on a fresh checkout is capturing it as a baseline migration.
+
+### Link (only needed on a new machine)
+
+```sh
+supabase link --project-ref <project-ref>   # ref lives in supabase/.temp/project-ref, gitignored
+```
+
+### Pull the current schema into a migration
+
+```sh
+supabase db pull
+```
+
+Writes a timestamped file under `supabase/migrations/` with the full remote schema (tables, RLS policies, functions). Run once to establish the baseline, commit the result. Run again later to capture any drift made directly in the dashboard as a new migration.
+
+### Writing new schema changes
+
+Once the baseline exists, make further changes as migration files instead of editing the dashboard directly:
+
+```sh
+supabase migration new <description>   # empty timestamped file to hand-edit
+supabase db push                       # apply pending local migrations to the remote project
+```
+
+### Backups
+
+Dumps go through the CLI against the linked project. `supabase/backups/` is gitignored — dumps can contain real user data (emails, contact messages) and must never be committed.
+
+```sh
+# schema only — safe to inspect/diff, no user data
+supabase db dump --linked -f supabase/backups/schema.sql
+
+# data only
+supabase db dump --linked --data-only -f supabase/backups/data.sql
+
+# full backup (schema + data)
+cat supabase/backups/schema.sql supabase/backups/data.sql > supabase/backups/full-backup-$(date +%Y%m%d).sql
+```
+
 ## Scripts
 
 | Command             | Description                                   |
