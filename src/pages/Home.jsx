@@ -81,11 +81,11 @@ export default function Home() {
         @keyframes organicGlow {
           0%, 100% {
             transform: translate(-50%, -50%) scale(1) rotate(0deg);
-            opacity: 0.40;
+            opacity: 0.35;
           }
           50% {
-            transform: translate(-47%, -52%) scale(1.25) rotate(10deg);
-            opacity: 0.75;
+            transform: translate(-48%, -52%) scale(1.15) rotate(6deg);
+            opacity: 0.60;
           }
         }
         .animate-organic-glow {
@@ -93,19 +93,20 @@ export default function Home() {
         }
       `}</style>
 
+      {/* Glow Suave sem corte seco */}
       <div 
         className="
           absolute
-          top-[350px]
+          top-[280px] sm:top-[320px]
           left-1/2 -translate-x-1/2 -translate-y-1/2
-          w-[600px] sm:w-[900px] md:w-[1200px]
-          h-[400px] sm:h-[600px] md:h-[750px]
-          bg-gradient-to-tr
-          from-[#a8f776]/50
-          via-[#2e7d15]/40
-          to-[#a8f776]/20
+          w-[500px] sm:w-[750px] md:w-[950px]
+          h-[350px] sm:h-[500px] md:h-[600px]
+          bg-gradient-to-b
+          from-[#a8f776]/30
+          via-[#2e7d15]/20
+          to-transparent
           rounded-full
-          blur-[90px] md:blur-[120px]
+          blur-[80px] md:blur-[130px]
           pointer-events-none
           animate-organic-glow
           z-0
