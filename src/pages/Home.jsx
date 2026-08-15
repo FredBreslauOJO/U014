@@ -9,15 +9,63 @@ import BannerSubmit from "@/components/home/BannerSubmit";
 import BannerAdmin from "@/components/home/BannerAdmin";
 import Logo from "@/components/Logo";
 import { bandUrl } from "@/lib/slug";
+import { getDateInLocalTimezone } from "@/lib/date";
+import { formatUrl } from "@/lib/supabaseStorage";
 
-// Helper para formatar e normalizar URLs de imagens
-const formatUrl = (url) => {
-  if (!url) return "";
-  let cleaned = String(url).replace("https://tgxzkvhqzyxjt.supabase.co", "https://otbjufhtgxzkvhqzyxjt.supabase.co");
-  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
-    return `https://otbjufhtgxzkvhqzyxjt.supabase.co/storage/v1/object/public/underground-images/${cleaned}`;
+const BRAZIL_TIME_ZONE = "America/Sao_Paulo";
+
+const getBrazilDateParts = (date = new Date()) => {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: BRAZIL_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  });
+
+  const parts = formatter.formatToParts(date).reduce((acc, part) => {
+    if (part.type !== "literal") acc[part.type] = part.value;
+    return acc;
+  }, {});
+
+  return {
+    year: parts.year,
+    month: parts.month,
+    day: parts.day,
+    hour: parts.hour,
+    minute: parts.minute,
+  };
+};
+
+const getBrazilDateString = (date = new Date()) => {
+  const { year, month, day } = getBrazilDateParts(date);
+  return `${year}-${month}-${day}`;
+};
+
+const getBrazilDateTimeKey = (date = new Date()) => {
+  const { year, month, day, hour, minute } = getBrazilDateParts(date);
+  return Number(`${year}${month}${day}${hour}${minute}`);
+};
+
+const getShowBrazilDateTimeKey = (show) => {
+  if (!show?.date) return 0;
+
+  const [year, month, day] = String(show.date).split("-");
+  if (!year || !month || !day) return 0;
+
+  let hour = "23";
+  let minute = "59";
+  if (typeof show.time === "string" && show.time.trim()) {
+    const [rawHour, rawMinute] = show.time.split(":");
+    if (rawHour && rawMinute) {
+      hour = rawHour.padStart(2, "0");
+      minute = rawMinute.padStart(2, "0");
+    }
   }
-  return cleaned;
+
+  return Number(`${year}${month}${day}${hour}${minute}`);
 };
 
 export default function Home() {
@@ -35,9 +83,17 @@ export default function Home() {
   useEffect(() => {
     supabase.from("bands").select("*").order("created_date", { ascending: false }).limit(50).then(({ data }) => data && setBands(data));
     supabase.from("news").select("*").order("created_date", { ascending: false }).limit(8).then(({ data }) => data && setNews(data));
-    supabase.from("shows").select("*").order("created_date", { ascending: false }).limit(10).then(({ data }) => data && setShows(data));
     supabase.from("partners").select("*").order("created_date", { ascending: false }).limit(6).then(({ data }) => data && setPartners(data));
     supabase.from("banners").select("*").order("created_date", { ascending: false }).limit(20).then(({ data }) => data && setBanners(data));
+
+    const todayInBrazil = getBrazilDateString();
+    supabase
+      .from("shows")
+      .select("*")
+      .gte("date", todayInBrazil)
+      .order("date", { ascending: true })
+      .limit(50)
+      .then(({ data }) => data && setShows(data));
   }, []);
 
   useEffect(() => {
@@ -50,6 +106,13 @@ export default function Home() {
     const shuffled = [...bands].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, 8);
   }, [bands]);
+
+  const upcomingShows = useMemo(() => {
+    const nowKey = getBrazilDateTimeKey();
+    return [...shows]
+      .filter((show) => getShowBrazilDateTimeKey(show) >= nowKey)
+      .sort((a, b) => getShowBrazilDateTimeKey(a) - getShowBrazilDateTimeKey(b));
+  }, [shows]);
 
   const submitBanner = async (form) => {
     const { data: created, error } = await supabase.from("banners").insert([{
@@ -94,7 +157,7 @@ export default function Home() {
       `}</style>
 
       {/* Glow Suave sem corte seco */}
-      <div 
+      <div
         className="
           absolute
           top-[280px] sm:top-[320px]
@@ -110,7 +173,7 @@ export default function Home() {
           pointer-events-none
           animate-organic-glow
           z-0
-        " 
+        "
       />
 
       <div className="relative z-10">
@@ -153,12 +216,12 @@ export default function Home() {
               >
                 <div className="aspect-square rounded-md overflow-hidden bg-[#222] mb-3 flex items-center justify-center">
                   {b.logo_url || b.photo_url ? (
-                    <img 
-                      src={formatUrl(b.logo_url || b.photo_url)} 
-                      alt={b.name} 
+                    <img
+                      src={formatUrl(b.logo_url || b.photo_url)}
+                      alt={b.name}
                       loading="lazy"
                       decoding="async"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
                   ) : (
                     <span className="text-3xl font-black text-[#444]">{b.name.charAt(0)}</span>
@@ -186,12 +249,12 @@ export default function Home() {
             </Link>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {shows.slice(0, 6).map((s) => (
+            {upcomingShows.slice(0, 6).map((s) => (
               <Link key={s.id} to={`/shows?show=${s.id}`} className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-4 hover:bg-[#181818] transition-colors">
                 <div className="flex items-start gap-3">
                   <div className="w-12 h-12 rounded bg-[#1a1a1a] flex flex-col items-center justify-center shrink-0">
-                    <span className="text-[10px] text-[#707070] uppercase">{new Date(s.date).toLocaleDateString("pt-BR", { month: "short" })}</span>
-                    <span className="text-lg font-bold text-white">{new Date(s.date).getDate()}</span>
+                    <span className="text-[10px] text-[#707070] uppercase">{getDateInLocalTimezone(s.date).toLocaleDateString("pt-BR", { month: "short" })}</span>
+                    <span className="text-lg font-bold text-white">{getDateInLocalTimezone(s.date).getDate()}</span>
                   </div>
                   <div className="min-w-0">
                     <div className="font-semibold text-white text-sm truncate">{s.title}</div>
@@ -203,7 +266,7 @@ export default function Home() {
                 </div>
               </Link>
             ))}
-            {shows.length === 0 && <p className="text-[#505050] text-sm col-span-full">Nenhum show agendado.</p>}
+            {upcomingShows.length === 0 && <p className="text-[#505050] text-sm col-span-full">Nenhum show agendado.</p>}
           </div>
         </section>
 
@@ -222,12 +285,12 @@ export default function Home() {
             {partners.slice(0, 6).map((p) => (
               <Link key={p.id} to="/partners" className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-3 hover:bg-[#181818] transition-colors flex items-center gap-3">
                 {p.photo_url ? (
-                  <img 
-                    src={formatUrl(p.photo_url)} 
-                    alt={p.name} 
+                  <img
+                    src={formatUrl(p.photo_url)}
+                    alt={p.name}
                     loading="lazy"
                     decoding="async"
-                    className="w-12 h-12 rounded-lg object-cover bg-[#222] shrink-0" 
+                    className="w-12 h-12 rounded-lg object-cover bg-[#222] shrink-0"
                   />
                 ) : (
                   <div className="w-12 h-12 rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center text-[#a8f776] font-bold text-base shrink-0">
@@ -261,12 +324,12 @@ export default function Home() {
             {news.slice(0, 4).map((n) => (
               <Link key={n.id} to="/news" className="bg-[#121212] border border-[#1e1e1e] rounded-lg overflow-hidden hover:bg-[#181818] transition-colors flex">
                 {n.image_url && (
-                  <img 
-                    src={formatUrl(n.image_url)} 
-                    alt={n.title} 
+                  <img
+                    src={formatUrl(n.image_url)}
+                    alt={n.title}
                     loading="lazy"
                     decoding="async"
-                    className="w-24 h-24 object-cover shrink-0" 
+                    className="w-24 h-24 object-cover shrink-0"
                   />
                 )}
                 <div className="p-3">
