@@ -20,7 +20,7 @@ export default function BandsFilter({ filters, onChange, cities = [], genres = [
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" className={`bg-[#121212] border-[#222] hover:bg-[#1a1a1a] ${activeCount ? "border-[#a8f776] text-[#a8f776]" : "text-white"}`}>
+        <Button variant="outline" className={`bg-[#121212] border-[#222] hover:bg-[#1a1a1a] h-11 ${activeCount ? "border-[#a8f776] text-[#a8f776]" : "text-white"}`}>
           <SlidersHorizontal size={16} className="mr-1" /> Filtros{activeCount ? ` (${activeCount})` : ""}
         </Button>
       </PopoverTrigger>

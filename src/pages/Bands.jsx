@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, MapPin, Plus, SlidersHorizontal } from "lucide-react";
+import { Search, MapPin, Plus } from "lucide-react";
 import { supabase } from "@/supabase"; // <-- Nossa ponte!
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -14,11 +14,8 @@ export default function Bands() {
   const [bands, setBands] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
 
-  const [filterCity, setFilterCity] = useState("all");
-  const [filterGenre, setFilterGenre] = useState("all");
-  const [filterType, setFilterType] = useState("all");
+  const [filters, setFilters] = useState({ type: "all", city: "", genres: [] });
 
   useEffect(() => {
     setLoading(true);
@@ -51,13 +48,13 @@ export default function Bands() {
       const matchesSearch = !term || b.name?.toLowerCase().includes(term) || b.city?.toLowerCase().includes(term) ||
         b.genre?.toLowerCase().includes(term) || b.genres?.some((g) => g.toLowerCase().includes(term));
 
-      const matchesCity = filterCity === "all" || b.city?.trim() === filterCity;
-      const matchesGenre = filterGenre === "all" || b.genre === filterGenre || b.genres?.includes(filterGenre);
-      const matchesType = filterType === "all" || b.performance_type === filterType;
+      const matchesCity = !filters.city || b.city?.trim() === filters.city;
+      const matchesGenre = !filters.genres.length || filters.genres.some((g) => b.genre === g || b.genres?.includes(g));
+      const matchesType = filters.type === "all" || b.performance_type === filters.type;
 
       return matchesSearch && matchesCity && matchesGenre && matchesType;
     });
-  }, [bands, search, filterCity, filterGenre, filterType]);
+  }, [bands, search, filters]);
 
   return (
     <div className="px-4 md:px-8 py-8 max-w-[1400px] mx-auto min-h-screen">
@@ -76,16 +73,8 @@ export default function Bands() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#606060]" size={18} />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nome, gênero ou cidade..." className="bg-[#121212] border-[#222] text-white pl-11 h-11 focus:border-[#a8f776]" />
         </div>
-        <Button onClick={() => setShowFilters(!showFilters)} variant="outline" className={`border-[#222] text-white h-11 gap-2 ${showFilters || filterCity !== "all" || filterGenre !== "all" || filterType !== "all" ? "bg-[#1a1a1a] border-[#a8f776]/50 text-[#a8f776]" : "bg-[#121212] hover:bg-[#1a1a1a]"}`}>
-          <SlidersHorizontal size={16} /> Filtros
-        </Button>
+        <BandsFilter cities={cities} genres={genresList} filters={filters} onChange={setFilters} />
       </div>
-
-      {showFilters && (
-        <div className="mb-6">
-          <BandsFilter cities={cities} genres={genresList} selectedCity={filterCity} setSelectedCity={setFilterCity} selectedGenre={filterGenre} setSelectedGenre={setFilterGenre} selectedType={filterType} setSelectedType={setFilterType} onClear={() => { setFilterCity("all"); setFilterGenre("all"); setFilterType("all"); }} />
-        </div>
-      )}
 
       {loading ? (
         <div className="text-center py-20 text-[#606060]">Carregando bandas...</div>
