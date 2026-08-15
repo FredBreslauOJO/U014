@@ -187,7 +187,7 @@ export default function Home() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {shows.slice(0, 6).map((s) => (
-              <Link key={s.id} to="/shows" className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-4 hover:bg-[#181818] transition-colors">
+              <Link key={s.id} to={`/shows?show=${s.id}`} className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-4 hover:bg-[#181818] transition-colors">
                 <div className="flex items-start gap-3">
                   <div className="w-12 h-12 rounded bg-[#1a1a1a] flex flex-col items-center justify-center shrink-0">
                     <span className="text-[10px] text-[#707070] uppercase">{new Date(s.date).toLocaleDateString("pt-BR", { month: "short" })}</span>
