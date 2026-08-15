@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, MapPin, Flame, ChevronRight, Briefcase } from "lucide-react";
+import { CalendarDays, MapPin, Flame, ChevronRight, Briefcase, List, GalleryHorizontal } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import { usePlayer } from "@/lib/playerContext";
@@ -72,6 +72,7 @@ export default function Home() {
   const [bands, setBands] = useState([]);
   const [news, setNews] = useState([]);
   const [shows, setShows] = useState([]);
+  const [showsView, setShowsView] = useState("list");
   const [partners, setPartners] = useState([]);
   const [banners, setBanners] = useState([]);
   const [pending, setPending] = useState([]);
@@ -113,6 +114,8 @@ export default function Home() {
       .filter((show) => getShowBrazilDateTimeKey(show) >= nowKey)
       .sort((a, b) => getShowBrazilDateTimeKey(a) - getShowBrazilDateTimeKey(b));
   }, [shows]);
+
+  const homeShows = upcomingShows.slice(0, 6);
 
   const submitBanner = async (form) => {
     const { data: created, error } = await supabase.from("banners").insert([{
@@ -244,30 +247,104 @@ export default function Home() {
               <CalendarDays size={18} className="text-[#a8f776]" />
               <h2 className="text-xl font-bold text-white">Próximos shows</h2>
             </div>
-            <Link to="/shows" className="text-xs text-[#a0a0a0] hover:text-white flex items-center gap-1">
-              Ver todos <ChevronRight size={14} />
-            </Link>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 rounded-full border border-[#222] bg-[#111] p-1">
+                <button
+                  type="button"
+                  onClick={() => setShowsView("list")}
+                  className={`h-8 w-8 rounded-full flex items-center justify-center transition-colors ${
+                    showsView === "list"
+                      ? "bg-[#a8f776] text-black"
+                      : "text-[#8a8a8a] hover:text-white hover:bg-[#171717]"
+                  }`}
+                  aria-label="Ver em lista"
+                  title="Lista"
+                >
+                  <List size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowsView("gallery")}
+                  className={`h-8 w-8 rounded-full flex items-center justify-center transition-colors ${
+                    showsView === "gallery"
+                      ? "bg-[#a8f776] text-black"
+                      : "text-[#8a8a8a] hover:text-white hover:bg-[#171717]"
+                  }`}
+                  aria-label="Ver em galeria"
+                  title="Galeria"
+                >
+                  <GalleryHorizontal size={16} />
+                </button>
+              </div>
+              <Link to="/shows" className="text-xs text-[#a0a0a0] hover:text-white flex items-center gap-1">
+                Ver todos <ChevronRight size={14} />
+              </Link>
+            </div>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {upcomingShows.slice(0, 6).map((s) => (
-              <Link key={s.id} to={`/shows?show=${s.id}`} className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-4 hover:bg-[#181818] transition-colors">
-                <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded bg-[#1a1a1a] flex flex-col items-center justify-center shrink-0">
-                    <span className="text-[10px] text-[#707070] uppercase">{getDateInLocalTimezone(s.date).toLocaleDateString("pt-BR", { month: "short" })}</span>
-                    <span className="text-lg font-bold text-white">{getDateInLocalTimezone(s.date).getDate()}</span>
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-semibold text-white text-sm truncate">{s.title}</div>
-                    <div className="text-xs text-[#909090] truncate">{(s.bands?.map((b) => b.name).join(", ")) || s.band_name || "—"}</div>
-                    <div className="text-xs text-[#606060] flex items-center gap-1 mt-1">
-                      <MapPin size={11} /> {(s.venues?.map((v) => v.name).join(", ")) || s.venue_name || s.city || s.time || ""}
+          {showsView === "list" ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {homeShows.map((s) => (
+                <Link key={s.id} to={`/shows?show=${s.id}`} className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-4 hover:bg-[#181818] transition-colors">
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 rounded bg-[#1a1a1a] flex flex-col items-center justify-center shrink-0">
+                      <span className="text-[10px] text-[#707070] uppercase">{getDateInLocalTimezone(s.date).toLocaleDateString("pt-BR", { month: "short" })}</span>
+                      <span className="text-lg font-bold text-white">{getDateInLocalTimezone(s.date).getDate()}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-semibold text-white text-sm truncate">{s.title}</div>
+                      <div className="text-xs text-[#909090] truncate">{(s.bands?.map((b) => b.name).join(", ")) || s.band_name || "—"}</div>
+                      <div className="text-xs text-[#606060] flex items-center gap-1 mt-1">
+                        <MapPin size={11} /> {(s.venues?.map((v) => v.name).join(", ")) || s.venue_name || s.city || s.time || ""}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-            {upcomingShows.length === 0 && <p className="text-[#505050] text-sm col-span-full">Nenhum show agendado.</p>}
-          </div>
+                </Link>
+              ))}
+              {upcomingShows.length === 0 && <p className="text-[#505050] text-sm col-span-full">Nenhum show agendado.</p>}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {homeShows.map((s) => {
+                const showImage = s.flyer_url || s.image_url || "";
+
+                return (
+                  <Link key={s.id} to={`/shows?show=${s.id}`} className="group bg-[#121212] border border-[#1e1e1e] rounded-xl overflow-hidden hover:bg-[#181818] transition-colors">
+                    <div className="aspect-[4/3] bg-[#151515] relative overflow-hidden">
+                      {showImage ? (
+                        <img
+                          src={formatUrl(showImage)}
+                          alt={s.title}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[#444] text-sm font-medium">
+                          Sem imagem
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-white text-sm leading-snug line-clamp-2">{s.title}</div>
+                          <div className="text-xs text-[#909090] truncate mt-1">{(s.bands?.map((b) => b.name).join(", ")) || s.band_name || "—"}</div>
+                        </div>
+                        <div className="w-12 h-12 rounded bg-[#1a1a1a] flex flex-col items-center justify-center shrink-0">
+                          <span className="text-[10px] text-[#707070] uppercase">{getDateInLocalTimezone(s.date).toLocaleDateString("pt-BR", { month: "short" })}</span>
+                          <span className="text-lg font-bold text-white leading-none">{getDateInLocalTimezone(s.date).getDate()}</span>
+                        </div>
+                      </div>
+                      <div className="text-xs text-[#606060] flex items-center gap-1">
+                        <MapPin size={11} /> {(s.venues?.map((v) => v.name).join(", ")) || s.venue_name || s.city || s.time || ""}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+              {upcomingShows.length === 0 && <p className="text-[#505050] text-sm col-span-full">Nenhum show agendado.</p>}
+            </div>
+          )}
         </section>
 
         {/* Guia da Cena & Serviços */}
