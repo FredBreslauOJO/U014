@@ -1,0 +1,31 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile
+
+    environment:
+      VITE_DEV_DOMAIN: underground014.local
+      VITE_DEV_HOST: 0.0.0.0
+      VITE_DEV_PORT: "5173"
+      VITE_USE_TRAEFIK: "true"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    networks:
+      - default
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.underground014.rule=Host(`underground014.local`)
+      - traefik.http.routers.underground014.entrypoints=websecure
+      - traefik.http.routers.underground014.tls=true
+      - traefik.http.services.underground014.loadbalancer.server.port=5173
+
+volumes:
+  node_modules:
+
+networks:
+  proxy:
+    external: true
