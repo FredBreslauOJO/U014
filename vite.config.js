@@ -34,5 +34,8 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    server: {
+      allowedHosts: ["underground014.local"],
+    },
   };
 });
