@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Play, ExternalLink, CalendarDays, MapPin, MessageSquare, Trash2, Users, Instagram, Mail, Phone, Music2, Youtube, Facebook, Image as ImageIcon, X, ChevronLeft, ChevronRight, FileDown, Share2, Check, Pencil } from "lucide-react";
+import { Play, ExternalLink, MapPin, MessageSquare, Trash2, Users, Instagram, Mail, Phone, Music2, Youtube, Facebook, Image as ImageIcon, X, ChevronLeft, ChevronRight, FileDown, Share2, Check, Pencil } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import { usePlayer, getSpotifyEmbed } from "@/lib/playerContext";
@@ -115,7 +115,7 @@ export default function BandDetail() {
     if (!user || !band) return false;
     const uEmail = user.email ? String(user.email).trim().toLowerCase() : "";
     const bEmail = band.email ? String(band.email).trim().toLowerCase() : "";
-    
+
     const createdByMatch = Boolean(band.created_by_id && String(band.created_by_id) === String(user.id));
     const emailMatch = Boolean(bEmail && uEmail && bEmail === uEmail);
     const collabMatch = Array.isArray(band.collaborator_emails) &&
@@ -198,7 +198,12 @@ export default function BandDetail() {
               <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight">{band.name}</h1>
               <div className="flex items-center gap-3 mt-2 text-sm text-[#b0b0b0] flex-wrap">
                 {band.city && <span className="flex items-center gap-1"><MapPin size={13} /> {band.city}</span>}
-                {(band.genres?.length ? band.genres.join(", ") : band.genre) && <span>• {band.genres?.length ? band.genres.join(", ") : band.genre}</span>}
+                {(band.genres?.length ? band.genres.join(", ") : band.genre) && (
+                  <>
+                    <br/>
+                    <span>{band.genres?.length ? band.genres.join(", ") : band.genre}</span>
+                  </>
+                )}
                 <span className={`text-[10px] px-2 py-0.5 rounded uppercase font-bold ${
                   band.performance_type === "autoral" ? "bg-[#a8f776]/20 text-[#a8f776]" :
                   band.performance_type === "cover" ? "bg-blue-500/20 text-blue-400" :
