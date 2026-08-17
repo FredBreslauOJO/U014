@@ -9,16 +9,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import ThreadNode from "@/components/ThreadNode";
 import HeatFlames from "@/components/HeatFlames";
 import { collectThreadDates, computeHeat } from "@/lib/threadHeat";
-
-// Helper para formatar URLs
-const formatUrl = (url) => {
-  if (!url) return "";
-  let cleaned = String(url).replace("https://tgxzkvhqzyxjt.supabase.co", "https://otbjufhtgxzkvhqzyxjt.supabase.co");
-  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
-    return `https://otbjufhtgxzkvhqzyxjt.supabase.co/storage/v1/object/public/underground-images/${cleaned}`;
-  }
-  return cleaned;
-};
+import { formatUrl } from "@/lib/supabaseStorage";
 
 // Sistema de Compressão Agressiva via Canvas (Max 1000px, WebP, 80% qualidade)
 const processAndUploadImage = async (file) => {

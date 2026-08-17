@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generatePressKitPDF } from "@/utils/generatePressKitPDF";
 import { useToast } from "@/components/ui/use-toast";
+import { formatUrl } from "@/lib/supabaseStorage";
 
 export default function BandDetail() {
   const { id, slug } = useParams();
@@ -27,15 +28,6 @@ export default function BandDetail() {
   const [lightbox, setLightbox] = useState(null);
   const [activeVideo, setActiveVideo] = useState(null);
   const [copied, setCopied] = useState(false);
-
-  const formatUrl = (url) => {
-    if (!url) return "";
-    let cleaned = String(url).replace("https://tgxzkvhqzyxjt.supabase.co", "https://otbjufhtgxzkvhqzyxjt.supabase.co");
-    if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
-      return `https://otbjufhtgxzkvhqzyxjt.supabase.co/storage/v1/object/public/underground-images/${cleaned}`;
-    }
-    return cleaned;
-  };
 
   const isExternalSource = (t) => {
     const url = t.url?.toLowerCase() || "";
