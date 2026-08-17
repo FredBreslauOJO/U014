@@ -14,6 +14,7 @@ import {
 import TagInput from "@/components/TagInput";
 import ShowCard from "@/components/ShowCard";
 import { GENRES } from "@/lib/genres";
+import { getDateInLocalTimezone } from "@/lib/date";
 
 const normalizeCity = (raw) => {
   if (!raw) return "";
@@ -78,11 +79,6 @@ export default function Shows() {
       }, 300);
     }
   }, [highlightedShowId, shows]);
-
-  const getDateInLocalTimezone = (dateStr) => {
-    const [year, month, day] = dateStr.split('-');
-    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  };
 
   const handleShare = async (title, text, url, id = null) => {
     if (navigator.share) {

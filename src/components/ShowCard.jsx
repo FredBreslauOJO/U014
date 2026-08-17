@@ -1,6 +1,7 @@
 import React from "react";
 import { CalendarDays, MapPin, Clock, Ticket, Share2, Pencil, Trash2, ChevronDown, ChevronUp, Music2, ExternalLink, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getDateInLocalTimezone } from "@/lib/date";
 
 const formatUrl = (url) => {
   if (!url) return "";
@@ -27,11 +28,6 @@ export default function ShowCard({
     (show.created_by_id === user.id ||
       user.role === "admin" ||
       user.user_metadata?.role === "admin");
-
-  const getDateInLocalTimezone = (dateStr) => {
-    const [year, month, day] = dateStr.split('-');
-    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  };
 
   const formattedDate = getDateInLocalTimezone(show.date).toLocaleDateString("pt-BR", {
     weekday: "short",
