@@ -6,6 +6,8 @@ import { Toaster } from "@/components/ui/toaster";
 
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminRoute from "@/components/AdminRoute";
+import AdminLayout from "@/components/AdminLayout";
 import ScrollToTop from "@/components/ScrollToTop";
 
 import Home from "@/pages/Home";
@@ -27,10 +29,22 @@ import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import PageNotFound from "@/lib/PageNotFound";
 
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminBands from "@/pages/admin/AdminBands";
+import AdminShows from "@/pages/admin/AdminShows";
+import AdminVenues from "@/pages/admin/AdminVenues";
+import AdminPartners from "@/pages/admin/AdminPartners";
+import AdminThreads from "@/pages/admin/AdminThreads";
+import AdminNews from "@/pages/admin/AdminNews";
+import AdminBanners from "@/pages/admin/AdminBanners";
+import AdminVenueReviews from "@/pages/admin/AdminVenueReviews";
+import AdminContactMessages from "@/pages/admin/AdminContactMessages";
+
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <PlayerProvider>
           <ScrollToTop />
           <Routes>
@@ -68,6 +82,21 @@ export default function App() {
 
               {/* Rota direta para Slug da Banda (ex: /midgard) */}
               <Route path="/:slug" element={<BandDetail />} />
+            </Route>
+
+            {/* Rotas de Administração */}
+            <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="bands" element={<AdminBands />} />
+              <Route path="shows" element={<AdminShows />} />
+              <Route path="venues" element={<AdminVenues />} />
+              <Route path="partners" element={<AdminPartners />} />
+              <Route path="threads" element={<AdminThreads />} />
+              <Route path="news" element={<AdminNews />} />
+              <Route path="banners" element={<AdminBanners />} />
+              <Route path="venue-reviews" element={<AdminVenueReviews />} />
+              <Route path="contact-messages" element={<AdminContactMessages />} />
             </Route>
 
             {/* Rotas de Autenticação */}
