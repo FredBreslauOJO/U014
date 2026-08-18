@@ -6,6 +6,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/supabase";
 import HeatFlames from "@/components/HeatFlames";
 import { collectThreadDates, computeHeat } from "@/lib/threadHeat";
+import { formatUrl } from "@/lib/supabaseStorage";
 
 function Avatar({ name }) {
   return (
@@ -18,15 +19,6 @@ function Avatar({ name }) {
 function timeStr(d) {
   return new Date(d).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
-
-const formatUrl = (url) => {
-  if (!url) return "";
-  let cleaned = String(url).replace("https://tgxzkvhqzyxjt.supabase.co", "https://otbjufhtgxzkvhqzyxjt.supabase.co");
-  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
-    return `https://otbjufhtgxzkvhqzyxjt.supabase.co/storage/v1/object/public/underground-images/${cleaned}`;
-  }
-  return cleaned;
-};
 
 const processAndUploadImage = async (file) => {
   if (!file) return null;

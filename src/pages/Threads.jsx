@@ -10,18 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import HeatFlames from "@/components/HeatFlames";
 import { collectThreadDates, computeHeat } from "@/lib/threadHeat";
+import { formatUrl } from "@/lib/supabaseStorage";
 
 const categories = ["geral", "shows", "parcerias", "releases", "off-topic"];
-
-// Helper para formatar URLs
-const formatUrl = (url) => {
-  if (!url) return "";
-  let cleaned = String(url).replace("https://tgxzkvhqzyxjt.supabase.co", "https://otbjufhtgxzkvhqzyxjt.supabase.co");
-  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
-    return `https://otbjufhtgxzkvhqzyxjt.supabase.co/storage/v1/object/public/underground-images/${cleaned}`;
-  }
-  return cleaned;
-};
 
 // Sistema de Compressão Agressiva via Canvas (Max 1000px, WebP, 80% qualidade)
 const processAndUploadImage = async (file) => {

@@ -1,16 +1,8 @@
 import React from "react";
 import { CalendarDays, MapPin, Clock, Ticket, Share2, Pencil, Trash2, ChevronDown, ChevronUp, Music2, ExternalLink, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatUrl } from "@/lib/supabaseStorage";
 import { getDateInLocalTimezone } from "@/lib/date";
-
-const formatUrl = (url) => {
-  if (!url) return "";
-  let cleaned = String(url).replace("https://tgxzkvhqzyxjt.supabase.co", "https://otbjufhtgxzkvhqzyxjt.supabase.co");
-  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
-    return `https://otbjufhtgxzkvhqzyxjt.supabase.co/storage/v1/object/public/underground-images/${cleaned}`;
-  }
-  return cleaned;
-};
 
 export default function ShowCard({
   show,
