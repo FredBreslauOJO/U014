@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2, Music2, Upload, Save, ArrowLeft, UserPlus, Star, Pencil, Youtube, Play } from "lucide-react";
+import { Plus, Trash2, Music2, Upload, Save, ArrowLeft, UserPlus, Star, Pencil, Youtube, Play, ChevronUp, ChevronDown } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -130,6 +130,16 @@ export default function BandRegister() {
 
   const removeGalleryImage = (i) => setForm((f) => ({ ...f, gallery: (f.gallery || []).filter((_, idx) => idx !== i) }));
 
+  const moveGalleryImage = (i, dir) => {
+    setForm((f) => {
+      const arr = [...(f.gallery || [])];
+      const j = i + dir;
+      if (j < 0 || j >= arr.length) return f;
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+      return { ...f, gallery: arr };
+    });
+  };
+
   const addVideo = () => {
     if (!newVideo.url.trim()) {
       toast({ title: "Informe a URL do vídeo do YouTube", variant: "destructive" });
@@ -154,6 +164,16 @@ export default function BandRegister() {
 
   const removeVideo = (index) => {
     setForm((f) => ({ ...f, videos: (f.videos || []).filter((_, i) => i !== index) }));
+  };
+
+  const moveVideo = (i, dir) => {
+    setForm((f) => {
+      const arr = [...(f.videos || [])];
+      const j = i + dir;
+      if (j < 0 || j >= arr.length) return f;
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+      return { ...f, videos: arr };
+    });
   };
 
   const save = async () => {
@@ -254,6 +274,7 @@ export default function BandRegister() {
   }
 
   return (
+    <div>
     <div className="px-4 md:px-8 py-6 max-w-[900px] mx-auto">
       <button onClick={() => setView("list")} className="flex items-center gap-1 text-sm text-[#909090] hover:text-white mb-4">
         <ArrowLeft size={16} /> Minhas bandas
@@ -330,6 +351,10 @@ export default function BandRegister() {
                     className="w-full h-full object-cover opacity-80"
                   />
                   <Play size={24} className="absolute text-white drop-shadow" />
+                  <div className="absolute top-1 left-1 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => moveVideo(i, -1)} type="button" disabled={i === 0} className="bg-black/80 text-white rounded p-1 disabled:opacity-30"><ChevronUp size={13} /></button>
+                    <button onClick={() => moveVideo(i, 1)} type="button" disabled={i === (form.videos || []).length - 1} className="bg-black/80 text-white rounded p-1 disabled:opacity-30"><ChevronDown size={13} /></button>
+                  </div>
                   <button
                     onClick={() => removeVideo(i)}
                     type="button"
@@ -376,6 +401,10 @@ export default function BandRegister() {
             {(form.gallery || []).map((url, i) => (
               <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-[#222] group">
                 <img src={url} alt="" className="w-full h-full object-cover" />
+                <div className="absolute top-1 left-1 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => moveGalleryImage(i, -1)} disabled={i === 0} className="bg-black/70 text-white rounded p-1 disabled:opacity-30"><ChevronUp size={12} /></button>
+                  <button onClick={() => moveGalleryImage(i, 1)} disabled={i === (form.gallery || []).length - 1} className="bg-black/70 text-white rounded p-1 disabled:opacity-30"><ChevronDown size={12} /></button>
+                </div>
                 <button onClick={() => removeGalleryImage(i)} className="absolute top-1 right-1 bg-black/70 text-red-400 rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={12} /></button>
               </div>
             ))}
@@ -429,35 +458,40 @@ export default function BandRegister() {
             </div>
           </section>
         )}
+      </div>
+    </div>
 
-        <div className="flex gap-3 sticky bottom-4">
-          <Button onClick={save} disabled={saving} className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold">
-            <Save size={16} className="mr-1" /> {saving ? "Salvando..." : editingBand ? "Salvar alterações" : "Cadastrar banda"}
-          </Button>
-          <Button onClick={() => setView("list")} variant="outline" className="border-[#333] text-white">Voltar</Button>
-          {editingBand && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-500/10 ml-auto">
-                  <Trash2 size={16} className="mr-1" /> Excluir banda
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="bg-[#121212] border-[#2a2a2a] text-white">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Excluir esta banda?</AlertDialogTitle>
-                  <AlertDialogDescription className="text-[#a0a0a0]">
-                    Esta ação não pode ser desfeita. A página da banda e seu mural serão removidos permanentemente.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel className="border-[#333] text-white hover:bg-[#1a1a1a]">Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={deleteBand} className="bg-red-600 text-white hover:bg-red-700">Excluir definitivamente</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
+    <div className="sticky bottom-0 bg-[#0e0e0e] border-y border-[#222]">
+      <div className="max-w-[900px] mx-auto px-4 md:px-8">
+        <div className="flex gap-3 px-5 py-3">
+        <Button onClick={save} disabled={saving} className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold">
+          <Save size={16} className="mr-1" /> {saving ? "Salvando..." : editingBand ? "Salvar alterações" : "Cadastrar banda"}
+        </Button>
+        <Button onClick={() => setView("list")} variant="outline" className="border-[#333] text-white">Voltar</Button>
+        {editingBand && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-500/10 ml-auto">
+                <Trash2 size={16} className="mr-1" /> Excluir banda
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-[#121212] border-[#2a2a2a] text-white">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir esta banda?</AlertDialogTitle>
+                <AlertDialogDescription className="text-[#a0a0a0]">
+                  Esta ação não pode ser desfeita. A página da banda e seu mural serão removidos permanentemente.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="border-[#333] text-white hover:bg-[#1a1a1a]">Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={deleteBand} className="bg-red-600 text-white hover:bg-red-700">Excluir definitivamente</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
         </div>
       </div>
+    </div>
     </div>
   );
 }
