@@ -7,11 +7,31 @@ BACKUP_DIR="${SCRIPT_DIR}/.backups"
 BACKUP_FILE="${BACKUP_DIR}/db-dump-$(date +%Y%m%d_%H%M%S).sql"
 
 # Local Supabase dev config (via `supabase start`)
+# Default port 54322 matches Supabase local development from supabase/config.toml
 LOCAL_DB_HOST="${LOCAL_DB_HOST:-localhost}"
-LOCAL_DB_PORT="${LOCAL_DB_PORT:-5432}"
+LOCAL_DB_PORT="${LOCAL_DB_PORT:-54322}"
 LOCAL_DB_USER="${LOCAL_DB_USER:-postgres}"
 LOCAL_DB_PASSWORD="${LOCAL_DB_PASSWORD:-postgres}"
 LOCAL_DB_NAME="${LOCAL_DB_NAME:-postgres}"
+
+# Docker container running local Supabase postgres (fallback when host has no psql)
+LOCAL_DB_CONTAINER="${LOCAL_DB_CONTAINER:-supabase_db_underground014.com.br}"
+
+psql_local() {
+  if command -v psql &> /dev/null; then
+    PGPASSWORD="${LOCAL_DB_PASSWORD}" psql \
+      -h "${LOCAL_DB_HOST}" \
+      -p "${LOCAL_DB_PORT}" \
+      -U "${LOCAL_DB_USER}" \
+      -d "${LOCAL_DB_NAME}" \
+      "$@"
+  else
+    docker exec -i \
+      -e PGPASSWORD="${LOCAL_DB_PASSWORD}" \
+      "${LOCAL_DB_CONTAINER}" \
+      psql -U "${LOCAL_DB_USER}" -d "${LOCAL_DB_NAME}" "$@"
+  fi
+}
 
 usage() {
   cat <<EOF
@@ -59,30 +79,46 @@ check_supabase_cli() {
 }
 
 check_local_postgres() {
-  if ! PGPASSWORD="${LOCAL_DB_PASSWORD}" psql \
-    -h "${LOCAL_DB_HOST}" \
-    -p "${LOCAL_DB_PORT}" \
-    -U "${LOCAL_DB_USER}" \
-    -d "${LOCAL_DB_NAME}" \
-    -c "SELECT 1" > /dev/null 2>&1; then
+  if ! psql_local -c "SELECT 1" > /dev/null 2>&1; then
     echo "Error: Cannot connect to local postgres at ${LOCAL_DB_HOST}:${LOCAL_DB_PORT}"
     echo "Start with: supabase start"
     exit 1
   fi
 }
 
+reset_local_schema() {
+  echo "Resetting local 'public' schema..."
+  psql_local -v ON_ERROR_STOP=1 <<'SQL'
+DROP SCHEMA IF EXISTS public CASCADE;
+CREATE SCHEMA public;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO public;
+SQL
+}
+
 backup() {
   check_supabase_cli
   ensure_backup_dir
 
-  echo "Backing up Supabase to ${BACKUP_FILE}..."
+  local schema_file="${BACKUP_FILE%.sql}.schema.sql"
+  local data_file="${BACKUP_FILE%.sql}.data.sql"
 
-  if (cd "${SCRIPT_DIR}" && supabase db dump --linked -f "${BACKUP_FILE}"); then
-    echo "✓ Backup successful: ${BACKUP_FILE}"
-  else
-    echo "✗ Backup failed"
+  echo "Backing up Supabase schema+data to ${BACKUP_FILE}..."
+
+  if ! (cd "${SCRIPT_DIR}" && supabase db dump --linked --schema public -f "${schema_file}"); then
+    echo "✗ Schema backup failed"
     exit 1
   fi
+
+  if ! (cd "${SCRIPT_DIR}" && supabase db dump --linked --schema public --data-only --use-copy -f "${data_file}"); then
+    echo "✗ Data backup failed"
+    exit 1
+  fi
+
+  cat "${schema_file}" "${data_file}" > "${BACKUP_FILE}"
+  rm -f "${schema_file}" "${data_file}"
+
+  echo "✓ Backup successful: ${BACKUP_FILE}"
 }
 
 restore() {
@@ -95,15 +131,11 @@ restore() {
 
   check_local_postgres
   ensure_backup_dir
+  reset_local_schema
 
   echo "Restoring from ${dump_file} into local Supabase..."
 
-  if PGPASSWORD="${LOCAL_DB_PASSWORD}" psql \
-    -h "${LOCAL_DB_HOST}" \
-    -p "${LOCAL_DB_PORT}" \
-    -U "${LOCAL_DB_USER}" \
-    -d "${LOCAL_DB_NAME}" \
-    -f "${dump_file}"; then
+  if psql_local -v ON_ERROR_STOP=1 < "${dump_file}"; then
     echo "✓ Restore successful"
   else
     echo "✗ Restore failed"
