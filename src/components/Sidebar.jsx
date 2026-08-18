@@ -85,7 +85,7 @@ export default function Sidebar({ onNavigate }) {
         <Logo className='w-full h-auto max-h-24 object-contain' />
       </div>
 
-      <nav className='px-3 flex flex-col gap-1'>
+      <nav className='px-3 flex flex-col'>
         {navItems.map((item) => (
           <NavLink
             key={item.to}
@@ -159,7 +159,7 @@ export default function Sidebar({ onNavigate }) {
               <>
                 <div className='flex items-center justify-between px-3 pt-2 pb-1'>
                   <span className='text-[10px] font-bold text-[#707070] uppercase tracking-wider'>
-                    Bandas
+                    Minhas Bandas
                   </span>
                   <button
                     onClick={() => navigate('/my-band')}
