@@ -85,7 +85,7 @@ export default function Sidebar({ onNavigate }) {
         <Logo className='w-full h-auto max-h-24 object-contain' />
       </div>
 
-      <nav className='px-3 flex flex-col gap-1'>
+      <nav className='px-3 flex flex-col'>
         {navItems.map((item) => (
           <NavLink
             key={item.to}
