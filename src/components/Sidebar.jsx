@@ -78,72 +78,77 @@ export default function Sidebar({ onNavigate }) {
 
   return (
     <aside className='w-[240px] shrink-0 h-full bg-[#0e0e0e] flex flex-col border-r border-[#1a1a1a]'>
+      {/* Fixed top: Logo */}
       <div
-        className='px-4 py-6 cursor-pointer flex items-center justify-start'
+        className='px-4 py-4 cursor-pointer flex items-center justify-start shrink-0'
         onClick={() => navigate('/')}
       >
-        <Logo className='w-full h-auto max-h-24 object-contain' />
+        <Logo className='w-full h-auto max-h-20 object-contain' />
       </div>
 
-      <nav className='px-3 flex flex-col'>
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-[#1a1a1a] text-white'
-                  : 'text-[#a0a0a0] hover:text-white hover:bg-[#161616]'
-              }`
-            }
-          >
-            <span className='w-6 h-6 flex items-center justify-start shrink-0'>
-              <item.icon size={18} strokeWidth={1.75} />
-            </span>
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
-
-      <div className='mt-6 px-5 flex items-center justify-between'>
-        <span className='text-[11px] font-bold text-[#707070] uppercase tracking-wider'>
-          Bandas
-        </span>
-        <button
-          onClick={() => navigate('/my-band')}
-          className='text-[#707070] hover:text-white transition-colors'
-          title='Cadastrar banda'
-        >
-          <Plus size={16} />
-        </button>
-      </div>
-
-      <div className='flex-1 overflow-y-auto px-2 mt-2 pb-4'>
-        {bands
-          .filter((b) => !myBands.some((m) => m.id === b.id))
-          .map((b) => (
+      {/* Unified scrollable middle: Nav + Bandas */}
+      <div className='flex-1 overflow-y-auto min-h-0 pb-2'>
+        <nav className='px-3 flex flex-col'>
+          {navItems.map((item) => (
             <NavLink
-              key={b.id}
-              to={bandUrl(b)}
+              key={item.to}
+              to={item.to}
+              end={item.end}
               onClick={onNavigate}
-              className='flex items-center gap-4 px-3 py-2 rounded-md hover:bg-[#161616] text-[#909090] hover:text-white text-sm transition-colors'
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-[#1a1a1a] text-white'
+                    : 'text-[#a0a0a0] hover:text-white hover:bg-[#161616]'
+                }`
+              }
             >
-              {b.logo_url ? (
-                <img src={b.logo_url} alt='' className='w-6 h-6 rounded object-cover shrink-0' />
-              ) : (
-                <span className='w-6 h-6 rounded bg-[#222] flex items-center justify-center shrink-0'>
-                  <Users size={12} className='text-[#666]' />
-                </span>
-              )}
-              <span className='truncate'>{b.name}</span>
+              <span className='w-6 h-6 flex items-center justify-start shrink-0'>
+                <item.icon size={18} strokeWidth={1.75} />
+              </span>
+              {item.label}
             </NavLink>
           ))}
+        </nav>
+
+        <div className='mt-5 px-5 flex items-center justify-between'>
+          <span className='text-[11px] font-bold text-[#707070] uppercase tracking-wider'>
+            Bandas
+          </span>
+          <button
+            onClick={() => navigate('/my-band')}
+            className='text-[#707070] hover:text-white transition-colors'
+            title='Cadastrar banda'
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+
+        <div className='px-2 mt-2'>
+          {bands
+            .filter((b) => !myBands.some((m) => m.id === b.id))
+            .map((b) => (
+              <NavLink
+                key={b.id}
+                to={bandUrl(b)}
+                onClick={onNavigate}
+                className='flex items-center gap-4 px-3 py-2 rounded-md hover:bg-[#161616] text-[#909090] hover:text-white text-sm transition-colors'
+              >
+                {b.logo_url ? (
+                  <img src={b.logo_url} alt='' className='w-6 h-6 rounded object-cover shrink-0' />
+                ) : (
+                  <span className='w-6 h-6 rounded bg-[#222] flex items-center justify-center shrink-0'>
+                    <Users size={12} className='text-[#666]' />
+                  </span>
+                )}
+                <span className='truncate'>{b.name}</span>
+              </NavLink>
+            ))}
+        </div>
       </div>
 
-      <div className='px-3 py-3 border-t border-[#1a1a1a]'>
+      {/* Fixed bottom: User profile / auth */}
+      <div className='px-3 py-3 border-t border-[#1a1a1a] shrink-0'>
         {user ? (
           <div className='rounded-md bg-[#161616] overflow-hidden'>
             <button
