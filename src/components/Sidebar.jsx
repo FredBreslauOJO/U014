@@ -159,7 +159,7 @@ export default function Sidebar({ onNavigate }) {
               <>
                 <div className='flex items-center justify-between px-3 pt-2 pb-1'>
                   <span className='text-[10px] font-bold text-[#707070] uppercase tracking-wider'>
-                    Bandas
+                    Minhas Bandas
                   </span>
                   <button
                     onClick={() => navigate('/my-band')}
