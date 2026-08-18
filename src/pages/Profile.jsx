@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Mail, Lock, LogOut, Save, Loader2, CheckCircle2 } from "lucide-react";
+import { User, Mail, Lock, LogOut, Save, Loader2 } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
