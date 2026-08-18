@@ -39,7 +39,7 @@ export default function Layout() {
             <button onClick={() => setMobileOpen(true)} className="text-white">
               <Menu size={22} />
             </button>
-            <span className="text-sm font-bold text-[#a8f776] tracking-widest">014</span>
+            <span className="text-sm font-bold text-[#a8f776] tracking-widest">DO IT OURSELVES</span>
             <div className="w-6" />
           </div>
 
