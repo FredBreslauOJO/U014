@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { CalendarDays, Plus, ImagePlus, X, Search, MapPin, Music2, Share2 } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
+import { useIsAdmin } from "@/lib/useIsAdmin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +31,7 @@ export default function Shows() {
   const [bands, setBands] = useState([]);
   const [venues, setVenues] = useState([]);
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
@@ -434,6 +436,7 @@ export default function Shows() {
             <ShowCard
               show={s}
               user={user}
+              isAdmin={isAdmin}
               expanded={expandedId === s.id}
               onToggle={() => setExpandedId((cur) => (cur === s.id ? null : s.id))}
               onEdit={openEdit}
@@ -462,6 +465,7 @@ export default function Shows() {
                 <ShowCard
                   show={s}
                   user={user}
+                  isAdmin={isAdmin}
                   expanded={expandedId === s.id}
                   onToggle={() => setExpandedId((cur) => (cur === s.id ? null : s.id))}
                   onEdit={openEdit}

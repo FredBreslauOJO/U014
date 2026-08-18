@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Building2, MapPin, Users, Instagram, Send, Trash2 } from "lucide-react";
 import { supabase } from "@/supabase"; // <-- Ponte Supabase
 import { useAuth } from "@/lib/AuthContext";
+import { useIsAdmin } from "@/lib/useIsAdmin";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import StarRating from "@/components/StarRating";
@@ -10,6 +11,7 @@ import StarRating from "@/components/StarRating";
 export default function VenueDetail() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const [venue, setVenue] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -128,7 +130,7 @@ export default function VenueDetail() {
                 </div>
                 <div className="flex items-center gap-2">
                   <StarRating value={r.rating} readOnly size={13} />
-                  {user && (user.id === r.created_by_id || user.role === "admin") && (
+                  {user && (user.id === r.created_by_id || isAdmin) && (
                     <button onClick={() => del(r)} className="text-[#404040] hover:text-red-400 transition-colors"><Trash2 size={13} /></button>
                   )}
                 </div>

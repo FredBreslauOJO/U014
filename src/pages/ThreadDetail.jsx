@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Plus, MessageSquare, ImageIcon, X } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
+import { useIsAdmin } from "@/lib/useIsAdmin";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -71,6 +72,7 @@ const processAndUploadImage = async (file) => {
 export default function ThreadDetail() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const [thread, setThread] = useState(null);
   const [childrenMap, setChildrenMap] = useState({});
   const [loading, setLoading] = useState(true);
@@ -257,7 +259,7 @@ export default function ThreadDetail() {
       {/* Lista de Respostas */}
       <div className="space-y-2">
         {topics.map((t) => (
-          <ThreadNode key={t.id} node={t} childrenMap={childrenMap} user={user} onReply={onReply} onDelete={onDelete} depth={0} />
+          <ThreadNode key={t.id} node={t} childrenMap={childrenMap} user={user} isAdmin={isAdmin} onReply={onReply} onDelete={onDelete} depth={0} />
         ))}
         {topics.length === 0 && (
           <div className="text-center py-12 text-[#606060]">
