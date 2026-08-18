@@ -38,3 +38,4 @@ node_modules/
 imagens_backup/
 *.py
 supabase/backups/
+.backups/
