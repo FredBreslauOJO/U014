@@ -5,7 +5,7 @@ import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import ThreadNode from "@/components/ThreadNode";
 import HeatFlames from "@/components/HeatFlames";
 import { collectThreadDates, computeHeat } from "@/lib/threadHeat";
@@ -270,6 +270,7 @@ export default function ThreadDetail() {
       {/* Lightbox / Imagem Expandida */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
         <DialogContent className="max-w-4xl bg-transparent border-none shadow-none flex justify-center items-center p-0">
+          <DialogTitle className="sr-only">Imagem expandida da thread</DialogTitle>
           {thread?.image_url && (
             <img 
               src={formatUrl(thread.image_url)} 

@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { Trash2, ChevronRight, Reply, Send, ImageIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/supabase";
 import HeatFlames from "@/components/HeatFlames";
 import { collectThreadDates, computeHeat } from "@/lib/threadHeat";
@@ -225,6 +225,7 @@ export default function ThreadNode({ node, childrenMap, user, onReply, onDelete,
       {/* Lightbox do Node */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
         <DialogContent className="max-w-4xl bg-transparent border-none shadow-none flex justify-center items-center p-0">
+          <DialogTitle className="sr-only">Imagem expandida do tópico</DialogTitle>
           {lightboxImage && (
             <img src={formatUrl(lightboxImage)} alt="Expandida" className="max-w-full max-h-[85vh] object-contain rounded-md" />
           )}
