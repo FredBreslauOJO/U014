@@ -70,7 +70,7 @@ export default function AdminUsers() {
     <div>
       <h1 className="text-2xl font-black text-white">Usuários</h1>
       <p className="text-[#808080] text-sm mt-1 mb-6">
-        {sortedProfiles.length} {sortedProfiles.length === 1 ? "usuário cadastrado" : "usuários cadastrados"}
+        {loading ? "Carregando..." : `${sortedProfiles.length} ${sortedProfiles.length === 1 ? "usuário cadastrado" : "usuários cadastrados"}`}
       </p>
       <AdminEntityTable
         columns={columns}

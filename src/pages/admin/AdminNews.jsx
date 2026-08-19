@@ -57,7 +57,7 @@ export default function AdminNews() {
         <div>
           <h1 className="text-2xl font-black text-white">Notícias</h1>
           <p className="text-[#808080] text-sm mt-1">
-            {sortedNews.length} {sortedNews.length === 1 ? "notícia cadastrada" : "notícias cadastradas"}
+            {loading ? "Carregando..." : `${sortedNews.length} ${sortedNews.length === 1 ? "notícia cadastrada" : "notícias cadastradas"}`}
           </p>
         </div>
         <Button

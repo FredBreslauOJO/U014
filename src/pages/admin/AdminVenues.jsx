@@ -58,7 +58,7 @@ export default function AdminVenues() {
         <div>
           <h1 className="text-2xl font-black text-white">Casas de Shows</h1>
           <p className="text-[#808080] text-sm mt-1">
-            {sortedVenues.length} {sortedVenues.length === 1 ? "casa cadastrada" : "casas cadastradas"}
+            {loading ? "Carregando..." : `${sortedVenues.length} ${sortedVenues.length === 1 ? "casa cadastrada" : "casas cadastradas"}`}
           </p>
         </div>
         <Button

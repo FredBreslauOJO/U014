@@ -58,7 +58,7 @@ export default function AdminPartners() {
         <div>
           <h1 className="text-2xl font-black text-white">Guia da Cena</h1>
           <p className="text-[#808080] text-sm mt-1">
-            {sortedPartners.length} {sortedPartners.length === 1 ? "parceiro cadastrado" : "parceiros cadastrados"}
+            {loading ? "Carregando..." : `${sortedPartners.length} ${sortedPartners.length === 1 ? "parceiro cadastrado" : "parceiros cadastrados"}`}
           </p>
         </div>
         <Button

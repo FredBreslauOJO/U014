@@ -98,7 +98,7 @@ export default function AdminBands() {
         <div>
           <h1 className="text-2xl font-black text-white">Bandas</h1>
           <p className="text-[#808080] text-sm mt-1">
-            {sortedBands.length} {sortedBands.length === 1 ? "banda cadastrada" : "bandas cadastradas"}
+            {loading ? "Carregando..." : `${sortedBands.length} ${sortedBands.length === 1 ? "banda cadastrada" : "bandas cadastradas"}`}
           </p>
         </div>
         <Button
