@@ -13,9 +13,11 @@ import {
   Briefcase,
   User,
   LogOut,
+  ShieldCheck,
 } from 'lucide-react';
 import { supabase } from '@/supabase';
 import { useAuth } from '@/lib/AuthContext';
+import { useIsAdmin } from '@/lib/useIsAdmin';
 import Logo from '@/components/Logo';
 import { bandUrl } from '@/lib/slug';
 
@@ -34,6 +36,7 @@ export default function Sidebar({ onNavigate }) {
   const navigate = useNavigate();
   const [bands, setBands] = useState([]);
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const [myBands, setMyBands] = useState([]);
 
   useEffect(() => {
@@ -159,6 +162,17 @@ export default function Sidebar({ onNavigate }) {
               <User size={18} className='text-[#a8f776] shrink-0' />
               <span className='truncate'>{user.user_metadata?.full_name || user.email}</span>
             </button>
+
+            {isAdmin && (
+              <button
+                onClick={() => navigate('/admin')}
+                className='w-full flex items-center gap-4 px-3 py-2.5 border-t border-[#1a1a1a] hover:bg-[#1c1c1c] text-white text-sm font-medium transition-colors'
+                title='Painel administrativo'
+              >
+                <ShieldCheck size={18} className='text-[#a8f776] shrink-0' />
+                Gerenciar
+              </button>
+            )}
 
             {myBands.length > 0 && (
               <>
