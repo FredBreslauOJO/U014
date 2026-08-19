@@ -45,7 +45,7 @@ export default function AdminLayout() {
     <div className="h-screen w-screen flex bg-[#0a0a0a] overflow-hidden">
       <aside className="w-[220px] shrink-0 h-full bg-[#0e0e0e] flex flex-col border-r border-[#1a1a1a]">
         <div className="px-4 py-4 shrink-0 flex flex-col items-center gap-1.5">
-          <Logo className="h-10 w-auto" />
+          <Logo className="w-full h-auto max-h-20 object-contain" />
           <span className="text-sm font-black text-[#a8f776] tracking-widest">ADMIN</span>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 flex flex-col gap-0.5">
