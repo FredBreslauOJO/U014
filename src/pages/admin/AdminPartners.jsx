@@ -55,7 +55,12 @@ export default function AdminPartners() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-black text-white">Guia da Cena</h1>
+        <div>
+          <h1 className="text-2xl font-black text-white">Guia da Cena</h1>
+          <p className="text-[#808080] text-sm mt-1">
+            {sortedPartners.length} {sortedPartners.length === 1 ? "parceiro cadastrado" : "parceiros cadastrados"}
+          </p>
+        </div>
         <Button
           onClick={() => navigate("/admin/partners/new")}
           className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold"

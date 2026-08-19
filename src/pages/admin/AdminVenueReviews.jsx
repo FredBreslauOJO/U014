@@ -46,7 +46,10 @@ export default function AdminVenueReviews() {
 
   return (
     <div>
-      <h1 className="text-2xl font-black text-white mb-6">Avaliações de Casas</h1>
+      <h1 className="text-2xl font-black text-white">Avaliações de Casas</h1>
+      <p className="text-[#808080] text-sm mt-1 mb-6">
+        {sortedReviews.length} {sortedReviews.length === 1 ? "avaliação cadastrada" : "avaliações cadastradas"}
+      </p>
 
       <AdminEntityTable
         columns={columns}

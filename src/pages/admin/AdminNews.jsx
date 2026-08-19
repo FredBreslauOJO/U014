@@ -54,7 +54,12 @@ export default function AdminNews() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-black text-white">Notícias</h1>
+        <div>
+          <h1 className="text-2xl font-black text-white">Notícias</h1>
+          <p className="text-[#808080] text-sm mt-1">
+            {sortedNews.length} {sortedNews.length === 1 ? "notícia cadastrada" : "notícias cadastradas"}
+          </p>
+        </div>
         <Button
           onClick={() => navigate("/admin/news/new")}
           className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold"

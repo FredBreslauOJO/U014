@@ -95,7 +95,12 @@ export default function AdminBands() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-black text-white">Bandas</h1>
+        <div>
+          <h1 className="text-2xl font-black text-white">Bandas</h1>
+          <p className="text-[#808080] text-sm mt-1">
+            {sortedBands.length} {sortedBands.length === 1 ? "banda cadastrada" : "bandas cadastradas"}
+          </p>
+        </div>
         <Button
           onClick={() => navigate("/admin/bands/new")}
           className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold"

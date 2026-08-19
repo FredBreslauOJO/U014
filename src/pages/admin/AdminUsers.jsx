@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/supabase";
-import { useAdminSort } from "@/lib/useAdminSort";
+import { useAdminSort, formatDateTime } from "@/lib/useAdminSort";
 import AdminEntityTable from "@/components/admin/AdminEntityTable";
 
 const ROLES = ["user", "admin"];
@@ -43,14 +43,7 @@ export default function AdminUsers() {
       label: "Criado em",
       sortable: true,
       headClassName: "w-40",
-      render: (r) =>
-        new Date(r.created_at).toLocaleString("pt-BR", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+      render: (r) => formatDateTime(r.created_at),
     },
     {
       key: "role",
@@ -75,7 +68,10 @@ export default function AdminUsers() {
 
   return (
     <div>
-      <h1 className="text-2xl font-black text-white mb-6">Usuários</h1>
+      <h1 className="text-2xl font-black text-white">Usuários</h1>
+      <p className="text-[#808080] text-sm mt-1 mb-6">
+        {sortedProfiles.length} {sortedProfiles.length === 1 ? "usuário cadastrado" : "usuários cadastrados"}
+      </p>
       <AdminEntityTable
         columns={columns}
         rows={sortedProfiles}

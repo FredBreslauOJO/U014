@@ -60,7 +60,12 @@ export default function AdminShows() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-black text-white">Shows</h1>
+        <div>
+          <h1 className="text-2xl font-black text-white">Shows</h1>
+          <p className="text-[#808080] text-sm mt-1">
+            {sortedShows.length} {sortedShows.length === 1 ? "show cadastrado" : "shows cadastrados"}
+          </p>
+        </div>
         <Button
           onClick={() => navigate("/admin/shows/new")}
           className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold"

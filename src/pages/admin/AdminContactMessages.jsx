@@ -44,7 +44,10 @@ export default function AdminContactMessages() {
 
   return (
     <div>
-      <h1 className="text-2xl font-black text-white mb-6">Mensagens de Contato</h1>
+      <h1 className="text-2xl font-black text-white">Mensagens de Contato</h1>
+      <p className="text-[#808080] text-sm mt-1 mb-6">
+        {sortedMessages.length} {sortedMessages.length === 1 ? "mensagem recebida" : "mensagens recebidas"}
+      </p>
 
       <AdminEntityTable
         columns={columns}

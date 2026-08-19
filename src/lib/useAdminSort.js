@@ -31,18 +31,18 @@ export function useAdminSort(rows, initial = { key: "created_date", dir: "desc" 
   return { sort, handleSort, sorted };
 }
 
+export const formatDateTime = (value) => {
+  const d = new Date(value);
+  const date = d.toLocaleDateString("pt-BR");
+  const time = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return `${date} ${time}`;
+};
+
 export const createdDateColumn = (overrides) => ({
   key: "created_date",
   label: "Criado em",
   sortable: true,
   headClassName: "w-40",
-  render: (r) =>
-    new Date(r.created_date).toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+  render: (r) => formatDateTime(r.created_date),
   ...overrides,
 });

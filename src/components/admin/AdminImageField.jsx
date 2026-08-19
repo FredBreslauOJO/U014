@@ -1,7 +1,9 @@
 import React, { useRef, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { uploadImage } from "@/utils/upload";
+import { formatUrl } from "@/lib/supabaseStorage";
 
 export default function AdminImageField({ label, value, onChange, folder = "uploads" }) {
   const [uploading, setUploading] = useState(false);
@@ -27,7 +29,7 @@ export default function AdminImageField({ label, value, onChange, folder = "uplo
       <div className="flex items-center gap-3">
         {value ? (
           <div className="relative w-16 h-16 shrink-0">
-            <img src={value} alt="" className="w-16 h-16 rounded-lg object-cover border border-[#222]" />
+            <img src={formatUrl(value)} alt="" className="w-16 h-16 rounded-lg object-cover border border-[#222]" />
             <button
               type="button"
               onClick={() => onChange("")}
@@ -51,6 +53,12 @@ export default function AdminImageField({ label, value, onChange, folder = "uplo
           {uploading ? "Enviando..." : value ? "Trocar imagem" : "Enviar imagem"}
         </Button>
       </div>
+      <Input
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="ou cole uma URL de imagem"
+        className="bg-[#0a0a0a] border-[#222] text-white text-xs mt-2"
+      />
     </div>
   );
 }

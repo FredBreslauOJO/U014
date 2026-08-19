@@ -70,7 +70,10 @@ export default function AdminThreads() {
 
   return (
     <div>
-      <h1 className="text-2xl font-black text-white mb-6">Threads</h1>
+      <h1 className="text-2xl font-black text-white">Threads</h1>
+      <p className="text-[#808080] text-sm mt-1 mb-6">
+        {sortedTopics.length} {sortedTopics.length === 1 ? "tópico cadastrado" : "tópicos cadastrados"}
+      </p>
 
       <AdminEntityTable
         columns={columns}
