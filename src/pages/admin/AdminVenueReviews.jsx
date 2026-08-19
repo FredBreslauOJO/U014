@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/supabase";
+import { useAdminSort, createdDateColumn } from "@/lib/useAdminSort";
 import AdminEntityTable from "@/components/admin/AdminEntityTable";
 import AdminDeleteConfirm from "@/components/admin/AdminDeleteConfirm";
 
@@ -30,23 +31,31 @@ export default function AdminVenueReviews() {
     setDeleting(null);
   };
 
+  const { sort, handleSort, sorted: sortedReviews } = useAdminSort(reviews, { key: "created_date", dir: "desc" }, {
+    venue_id: (r) => (venueNames[r.venue_id] || r.venue_id || "").toLowerCase(),
+    author_name: (r) => (r.author_name || "anônimo").toLowerCase(),
+  });
+
   const columns = [
-    { key: "venue_id", label: "Casa", render: (r) => venueNames[r.venue_id] || r.venue_id },
-    { key: "author_name", label: "Autor", render: (r) => r.author_name || "Anônimo" },
-    { key: "rating", label: "Nota", render: (r) => `${r.rating} ★` },
+    { key: "venue_id", label: "Casa", sortable: true, render: (r) => venueNames[r.venue_id] || r.venue_id },
+    { key: "author_name", label: "Autor", sortable: true, render: (r) => r.author_name || "Anônimo" },
+    { key: "rating", label: "Nota", sortable: true, render: (r) => `${r.rating} ★` },
     { key: "comment", label: "Comentário", render: (r) => <span className="line-clamp-2">{r.comment}</span> },
-    {
-      key: "created_date",
-      label: "Data",
-      render: (r) => new Date(r.created_date).toLocaleDateString("pt-BR"),
-    },
+    createdDateColumn(),
   ];
 
   return (
     <div>
       <h1 className="text-2xl font-black text-white mb-6">Avaliações de Casas</h1>
 
-      <AdminEntityTable columns={columns} rows={reviews} loading={loading} onDelete={setDeleting} />
+      <AdminEntityTable
+        columns={columns}
+        rows={sortedReviews}
+        loading={loading}
+        onDelete={setDeleting}
+        sort={sort}
+        onSortChange={handleSort}
+      />
 
       <AdminDeleteConfirm
         open={!!deleting}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Eye } from "lucide-react";
 import { supabase } from "@/supabase";
+import { useAdminSort, createdDateColumn } from "@/lib/useAdminSort";
 import AdminEntityTable from "@/components/admin/AdminEntityTable";
 import AdminDeleteConfirm from "@/components/admin/AdminDeleteConfirm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -31,15 +32,13 @@ export default function AdminContactMessages() {
     setDeleting(null);
   };
 
+  const { sort, handleSort, sorted: sortedMessages } = useAdminSort(messages, { key: "created_date", dir: "desc" });
+
   const columns = [
-    { key: "name", label: "Nome" },
-    { key: "email", label: "Email" },
-    { key: "subject", label: "Assunto", render: (r) => r.subject || "—" },
-    {
-      key: "created_date",
-      label: "Data",
-      render: (r) => new Date(r.created_date).toLocaleDateString("pt-BR"),
-    },
+    { key: "name", label: "Nome", sortable: true },
+    { key: "email", label: "Email", sortable: true },
+    { key: "subject", label: "Assunto", sortable: true, render: (r) => r.subject || "—" },
+    createdDateColumn(),
   ];
 
   return (
@@ -48,9 +47,11 @@ export default function AdminContactMessages() {
 
       <AdminEntityTable
         columns={columns}
-        rows={messages}
+        rows={sortedMessages}
         loading={loading}
         onDelete={setDeleting}
+        sort={sort}
+        onSortChange={handleSort}
         renderRowActions={(row) => (
           <button
             onClick={() => setViewing(row)}

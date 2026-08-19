@@ -35,10 +35,10 @@ export default function AdminEntityTable({
           <TableRow className="border-[#1e1e1e] hover:bg-transparent">
             {columns.map((col) =>
               col.sortable ? (
-                <TableHead key={col.key} className="text-[#a0a0a0] p-0">
+                <TableHead key={col.key} className={`text-[#a0a0a0] p-0 ${col.headClassName || ""}`}>
                   <button
                     onClick={() => onSortChange?.(col.key)}
-                    className="w-full flex items-center gap-1 px-2 py-2.5 hover:text-white transition-colors"
+                    className="w-full flex items-center gap-1 px-2 py-2.5 hover:text-white transition-colors whitespace-nowrap"
                   >
                     {col.label}
                     {sort?.key === col.key ? (
@@ -53,7 +53,7 @@ export default function AdminEntityTable({
                   </button>
                 </TableHead>
               ) : (
-                <TableHead key={col.key} className="text-[#a0a0a0]">
+                <TableHead key={col.key} className={`text-[#a0a0a0] ${col.headClassName || ""}`}>
                   {col.label}
                 </TableHead>
               )

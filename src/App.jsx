@@ -32,11 +32,16 @@ import PageNotFound from "@/lib/PageNotFound";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminBands from "@/pages/admin/AdminBands";
+import AdminBandEdit from "@/pages/admin/AdminBandEdit";
 import AdminShows from "@/pages/admin/AdminShows";
+import AdminShowEdit from "@/pages/admin/AdminShowEdit";
 import AdminVenues from "@/pages/admin/AdminVenues";
+import AdminVenueEdit from "@/pages/admin/AdminVenueEdit";
 import AdminPartners from "@/pages/admin/AdminPartners";
+import AdminPartnerEdit from "@/pages/admin/AdminPartnerEdit";
 import AdminThreads from "@/pages/admin/AdminThreads";
 import AdminNews from "@/pages/admin/AdminNews";
+import AdminNewsEdit from "@/pages/admin/AdminNewsEdit";
 import AdminBanners from "@/pages/admin/AdminBanners";
 import AdminVenueReviews from "@/pages/admin/AdminVenueReviews";
 import AdminContactMessages from "@/pages/admin/AdminContactMessages";
@@ -89,11 +94,16 @@ export default function App() {
               <Route index element={<AdminDashboard />} />
               <Route path="users" element={<AdminUsers />} />
               <Route path="bands" element={<AdminBands />} />
+              <Route path="bands/:id" element={<AdminBandEdit />} />
               <Route path="shows" element={<AdminShows />} />
+              <Route path="shows/:id" element={<AdminShowEdit />} />
               <Route path="venues" element={<AdminVenues />} />
+              <Route path="venues/:id" element={<AdminVenueEdit />} />
               <Route path="partners" element={<AdminPartners />} />
+              <Route path="partners/:id" element={<AdminPartnerEdit />} />
               <Route path="threads" element={<AdminThreads />} />
               <Route path="news" element={<AdminNews />} />
+              <Route path="news/:id" element={<AdminNewsEdit />} />
               <Route path="banners" element={<AdminBanners />} />
               <Route path="venue-reviews" element={<AdminVenueReviews />} />
               <Route path="contact-messages" element={<AdminContactMessages />} />

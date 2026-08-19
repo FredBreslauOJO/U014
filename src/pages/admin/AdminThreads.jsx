@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/supabase";
+import { useAdminSort, createdDateColumn } from "@/lib/useAdminSort";
 import AdminEntityTable from "@/components/admin/AdminEntityTable";
 import AdminDeleteConfirm from "@/components/admin/AdminDeleteConfirm";
 
@@ -49,23 +50,32 @@ export default function AdminThreads() {
     setDeleting(null);
   };
 
+  const { sort, handleSort, sorted: sortedTopics } = useAdminSort(topics, { key: "created_date", dir: "desc" }, {
+    title: (r) => (r.title || r.content?.slice(0, 60) || "").toLowerCase(),
+    author_name: (r) => (r.author_name || "anônimo").toLowerCase(),
+    replies: (r) => replyCounts[r.id] || 0,
+  });
+
   const columns = [
-    { key: "title", label: "Título", render: (r) => r.title || r.content?.slice(0, 60) || "—" },
-    { key: "author_name", label: "Autor", render: (r) => r.author_name || "Anônimo" },
-    { key: "category", label: "Categoria", render: (r) => r.category || "geral" },
-    { key: "replies", label: "Respostas", render: (r) => replyCounts[r.id] || 0 },
-    {
-      key: "created_date",
-      label: "Data",
-      render: (r) => new Date(r.created_date).toLocaleDateString("pt-BR"),
-    },
+    { key: "title", label: "Título", sortable: true, render: (r) => r.title || r.content?.slice(0, 60) || "—" },
+    { key: "author_name", label: "Autor", sortable: true, render: (r) => r.author_name || "Anônimo" },
+    { key: "category", label: "Categoria", sortable: true, render: (r) => r.category || "geral" },
+    { key: "replies", label: "Respostas", sortable: true, render: (r) => replyCounts[r.id] || 0 },
+    createdDateColumn(),
   ];
 
   return (
     <div>
       <h1 className="text-2xl font-black text-white mb-6">Threads</h1>
 
-      <AdminEntityTable columns={columns} rows={topics} loading={loading} onDelete={setDeleting} />
+      <AdminEntityTable
+        columns={columns}
+        rows={sortedTopics}
+        loading={loading}
+        onDelete={setDeleting}
+        sort={sort}
+        onSortChange={handleSort}
+      />
 
       <AdminDeleteConfirm
         open={!!deleting}

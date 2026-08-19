@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/supabase";
+import { useAdminSort } from "@/lib/useAdminSort";
 import AdminEntityTable from "@/components/admin/AdminEntityTable";
 
 const ROLES = ["user", "admin"];
@@ -32,17 +33,29 @@ export default function AdminUsers() {
     setSavingId(null);
   };
 
+  const { sort, handleSort, sorted: sortedProfiles } = useAdminSort(profiles, { key: "created_at", dir: "desc" });
+
   const columns = [
-    { key: "email", label: "Email" },
-    { key: "full_name", label: "Nome", render: (r) => r.full_name || "—" },
+    { key: "email", label: "Email", sortable: true },
+    { key: "full_name", label: "Nome", sortable: true, render: (r) => r.full_name || "—" },
     {
       key: "created_at",
-      label: "Desde",
-      render: (r) => new Date(r.created_at).toLocaleDateString("pt-BR"),
+      label: "Criado em",
+      sortable: true,
+      headClassName: "w-40",
+      render: (r) =>
+        new Date(r.created_at).toLocaleString("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
     },
     {
       key: "role",
       label: "Papel",
+      sortable: true,
       render: (r) => (
         <select
           value={r.role}
@@ -63,7 +76,13 @@ export default function AdminUsers() {
   return (
     <div>
       <h1 className="text-2xl font-black text-white mb-6">Usuários</h1>
-      <AdminEntityTable columns={columns} rows={profiles} loading={loading} />
+      <AdminEntityTable
+        columns={columns}
+        rows={sortedProfiles}
+        loading={loading}
+        sort={sort}
+        onSortChange={handleSort}
+      />
     </div>
   );
 }
