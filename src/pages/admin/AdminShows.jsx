@@ -16,7 +16,7 @@ export default function AdminShows() {
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase.from("shows").select("*");
+    const { data } = await supabase.from("shows").select("*").eq("status", "active");
     setShows(data || []);
     setLoading(false);
   };
@@ -28,7 +28,7 @@ export default function AdminShows() {
   const { sort, handleSort, sorted: sortedShows } = useAdminSort(shows, { key: "date", dir: "desc" });
 
   const handleDelete = async () => {
-    await supabase.from("shows").delete().eq("id", deleting.id);
+    await supabase.from("shows").update({ status: "disabled" }).eq("id", deleting.id);
     setShows((ss) => ss.filter((s) => s.id !== deleting.id));
     setDeleting(null);
   };

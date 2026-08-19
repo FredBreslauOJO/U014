@@ -62,7 +62,7 @@ export default function VenueDetail() {
   };
 
   const del = async (r) => {
-    await supabase.from('venue_reviews').delete().eq('id', r.id);
+    await supabase.from('venue_reviews').update({ status: 'disabled' }).eq('id', r.id);
     setReviews(reviews.filter((x) => x.id !== r.id));
   };
 

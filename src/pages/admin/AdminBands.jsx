@@ -18,7 +18,7 @@ export default function AdminBands() {
   const load = async () => {
     setLoading(true);
     const [{ data: bandsData }, { data: profilesData }] = await Promise.all([
-      supabase.from("bands").select("*"),
+      supabase.from("bands").select("*").eq("status", "active"),
       supabase.from("profiles").select("id, email, full_name"),
     ]);
     setBands(bandsData || []);
@@ -41,7 +41,7 @@ export default function AdminBands() {
   });
 
   const handleDelete = async () => {
-    await supabase.from("bands").delete().eq("id", deleting.id);
+    await supabase.from("bands").update({ status: "disabled" }).eq("id", deleting.id);
     setBands((bs) => bs.filter((b) => b.id !== deleting.id));
     setDeleting(null);
   };
@@ -118,7 +118,7 @@ export default function AdminBands() {
         open={!!deleting}
         onOpenChange={(o) => !o && setDeleting(null)}
         title="Excluir esta banda?"
-        description="Esta ação não pode ser desfeita. A página da banda e seu mural serão removidos permanentemente."
+        description="A página da banda ficará oculta do site. Um admin pode reativá-la depois."
         onConfirm={handleDelete}
       />
     </div>

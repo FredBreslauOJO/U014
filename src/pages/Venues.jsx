@@ -63,7 +63,7 @@ export default function Venues() {
   };
 
   const remove = async (id) => {
-    await supabase.from('venues').delete().eq('id', id);
+    await supabase.from('venues').update({ status: 'disabled' }).eq('id', id);
     setVenues(venues.filter((v) => v.id !== id));
   };
 

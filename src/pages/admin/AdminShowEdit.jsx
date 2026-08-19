@@ -64,7 +64,7 @@ export default function AdminShowEdit() {
   };
 
   const handleDelete = async () => {
-    await supabase.from("shows").delete().eq("id", id);
+    await supabase.from("shows").update({ status: "disabled" }).eq("id", id);
     navigate("/admin/shows");
   };
 

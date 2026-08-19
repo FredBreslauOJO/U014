@@ -32,7 +32,7 @@ export default function AdminBanners() {
   };
 
   const handleDelete = async () => {
-    await supabase.from("banners").delete().eq("id", deleting.id);
+    await supabase.from("banners").update({ status: "disabled" }).eq("id", deleting.id);
     setBanners((bs) => bs.filter((b) => b.id !== deleting.id));
     setDeleting(null);
   };

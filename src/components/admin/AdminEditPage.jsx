@@ -11,7 +11,7 @@ export default function AdminEditPage({
   saving,
   onDelete,
   deleteLabel = "Excluir este registro?",
-  deleteDescription = "Esta ação não pode ser desfeita.",
+  deleteDescription = "O registro será desativado e ocultado do site. Um admin pode reativá-lo depois.",
   children,
 }) {
   const navigate = useNavigate();

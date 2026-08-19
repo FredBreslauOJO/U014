@@ -78,7 +78,7 @@ export default function AdminBandEdit() {
   };
 
   const handleDelete = async () => {
-    await supabase.from("bands").delete().eq("id", id);
+    await supabase.from("bands").update({ status: "disabled" }).eq("id", id);
     navigate("/admin/bands");
   };
 
@@ -92,7 +92,7 @@ export default function AdminBandEdit() {
       saving={saving}
       onDelete={isNew ? undefined : handleDelete}
       deleteLabel="Excluir esta banda?"
-      deleteDescription="Esta ação não pode ser desfeita. A página da banda e seu mural serão removidos permanentemente."
+      deleteDescription="A página da banda ficará oculta do site. Um admin pode reativá-la depois."
     >
       <div>
         <label className="text-xs font-semibold text-[#a0a0a0] block mb-1">Nome *</label>

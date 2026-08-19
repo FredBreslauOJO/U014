@@ -13,7 +13,7 @@ export default function AdminVenueReviews() {
   const load = async () => {
     setLoading(true);
     const [{ data: r }, { data: v }] = await Promise.all([
-      supabase.from("venue_reviews").select("*").order("created_date", { ascending: false }),
+      supabase.from("venue_reviews").select("*").eq("status", "active").order("created_date", { ascending: false }),
       supabase.from("venues").select("id, name"),
     ]);
     setReviews(r || []);
@@ -26,7 +26,7 @@ export default function AdminVenueReviews() {
   }, []);
 
   const handleDelete = async () => {
-    await supabase.from("venue_reviews").delete().eq("id", deleting.id);
+    await supabase.from("venue_reviews").update({ status: "disabled" }).eq("id", deleting.id);
     setReviews((rs) => rs.filter((r) => r.id !== deleting.id));
     setDeleting(null);
   };

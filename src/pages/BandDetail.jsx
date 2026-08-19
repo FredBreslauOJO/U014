@@ -156,7 +156,7 @@ export default function BandDetail() {
   };
 
   const deleteNote = async (noteId) => {
-    await supabase.from("notes").delete().eq("id", noteId);
+    await supabase.from("notes").update({ status: "disabled" }).eq("id", noteId);
     setNotes(notes.filter((n) => n.id !== noteId));
   };
 

@@ -189,7 +189,7 @@ export default function BandRegister() {
   const deleteBand = async () => {
     if (!editingBand) return;
     try {
-      await supabase.from("bands").delete().eq("id", editingBand.id);
+      await supabase.from("bands").update({ status: "disabled" }).eq("id", editingBand.id);
       toast({ title: "Banda excluída" });
       setEditingBand(null);
       setView("list");
@@ -209,7 +209,7 @@ export default function BandRegister() {
   };
 
   const deleteTrack = async (tid) => {
-    await supabase.from("tracks").delete().eq("id", tid);
+    await supabase.from("tracks").update({ status: "disabled" }).eq("id", tid);
     setTracks(tracks.filter((t) => t.id !== tid));
   };
 
@@ -446,12 +446,12 @@ export default function BandRegister() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Excluir esta banda?</AlertDialogTitle>
                   <AlertDialogDescription className="text-[#a0a0a0]">
-                    Esta ação não pode ser desfeita. A página da banda e seu mural serão removidos permanentemente.
+                    A página da banda ficará oculta do site. Fale com um admin se precisar reativá-la depois.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel className="border-[#333] text-white hover:bg-[#1a1a1a]">Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={deleteBand} className="bg-red-600 text-white hover:bg-red-700">Excluir definitivamente</AlertDialogAction>
+                  <AlertDialogAction onClick={deleteBand} className="bg-red-600 text-white hover:bg-red-700">Excluir</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>

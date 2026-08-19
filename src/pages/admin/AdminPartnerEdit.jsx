@@ -78,7 +78,7 @@ export default function AdminPartnerEdit() {
   };
 
   const handleDelete = async () => {
-    await supabase.from("partners").delete().eq("id", id);
+    await supabase.from("partners").update({ status: "disabled" }).eq("id", id);
     navigate("/admin/partners");
   };
 

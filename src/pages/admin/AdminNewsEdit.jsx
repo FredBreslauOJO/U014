@@ -65,7 +65,7 @@ export default function AdminNewsEdit() {
   };
 
   const handleDelete = async () => {
-    await supabase.from("news").delete().eq("id", id);
+    await supabase.from("news").update({ status: "disabled" }).eq("id", id);
     navigate("/admin/news");
   };
 

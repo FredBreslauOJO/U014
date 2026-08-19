@@ -88,7 +88,7 @@ export default function Partners() {
   const handleDelete = async (id) => {
     if (!window.confirm("Certeza que deseja excluir este cadastro?")) return;
     try {
-      await supabase.from('partners').delete().eq('id', id);
+      await supabase.from('partners').update({ status: 'disabled' }).eq('id', id);
       setPartners(partners.filter((p) => p.id !== id));
     } catch (e) {
       alert("Erro ao excluir.");

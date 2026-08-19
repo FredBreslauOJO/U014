@@ -168,7 +168,7 @@ export default function ThreadDetail() {
   };
 
   const onDelete = async (node) => {
-    await supabase.from('threads').delete().eq('id', node.id);
+    await supabase.from('threads').update({ status: 'disabled' }).eq('id', node.id);
     setChildrenMap((m) => {
       const next = {};
       Object.entries(m).forEach(([k, arr]) => {

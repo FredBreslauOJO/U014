@@ -14,7 +14,8 @@ export default function AdminDeleteConfirm({
   open,
   onOpenChange,
   title = "Excluir este registro?",
-  description = "Esta ação não pode ser desfeita.",
+  description = "O registro será desativado e ocultado do site. Um admin pode reativá-lo depois.",
+  confirmLabel = "Excluir",
   onConfirm,
 }) {
   return (
@@ -29,7 +30,7 @@ export default function AdminDeleteConfirm({
             Cancelar
           </AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} className="bg-red-600 text-white hover:bg-red-700">
-            Excluir definitivamente
+            {confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -68,7 +68,7 @@ export default function AdminVenueEdit() {
   };
 
   const handleDelete = async () => {
-    await supabase.from("venues").delete().eq("id", id);
+    await supabase.from("venues").update({ status: "disabled" }).eq("id", id);
     navigate("/admin/venues");
   };
 

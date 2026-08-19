@@ -199,7 +199,7 @@ export default function Shows() {
   };
 
   const remove = async (id) => {
-    await supabase.from('shows').delete().eq('id', id);
+    await supabase.from('shows').update({ status: 'disabled' }).eq('id', id);
     setShows(shows.filter((s) => s.id !== id));
   };
 

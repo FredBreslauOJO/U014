@@ -16,7 +16,7 @@ export default function AdminPartners() {
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase.from("partners").select("*");
+    const { data } = await supabase.from("partners").select("*").eq("status", "active");
     setPartners(data || []);
     setLoading(false);
   };
@@ -28,7 +28,7 @@ export default function AdminPartners() {
   const { sort, handleSort, sorted: sortedPartners } = useAdminSort(partners);
 
   const handleDelete = async () => {
-    await supabase.from("partners").delete().eq("id", deleting.id);
+    await supabase.from("partners").update({ status: "disabled" }).eq("id", deleting.id);
     setPartners((ps) => ps.filter((p) => p.id !== deleting.id));
     setDeleting(null);
   };

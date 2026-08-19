@@ -16,7 +16,7 @@ export default function AdminNews() {
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase.from("news").select("*");
+    const { data } = await supabase.from("news").select("*").eq("status", "active");
     setNews(data || []);
     setLoading(false);
   };
@@ -28,7 +28,7 @@ export default function AdminNews() {
   const { sort, handleSort, sorted: sortedNews } = useAdminSort(news);
 
   const handleDelete = async () => {
-    await supabase.from("news").delete().eq("id", deleting.id);
+    await supabase.from("news").update({ status: "disabled" }).eq("id", deleting.id);
     setNews((ns) => ns.filter((n) => n.id !== deleting.id));
     setDeleting(null);
   };

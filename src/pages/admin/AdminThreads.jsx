@@ -13,7 +13,11 @@ export default function AdminThreads() {
 
   const load = async () => {
     setLoading(true);
-    const { data: all } = await supabase.from("threads").select("*").order("created_date", { ascending: false });
+    const { data: all } = await supabase
+      .from("threads")
+      .select("*")
+      .eq("status", "active")
+      .order("created_date", { ascending: false });
     setAllThreads(all || []);
     setTopics((all || []).filter((t) => !t.parent_id));
 
@@ -44,7 +48,7 @@ export default function AdminThreads() {
 
   const handleDelete = async () => {
     const ids = [deleting.id, ...collectDescendantIds(deleting.id)];
-    await supabase.from("threads").delete().in("id", ids);
+    await supabase.from("threads").update({ status: "disabled" }).in("id", ids);
     setAllThreads((all) => all.filter((t) => !ids.includes(t.id)));
     setTopics((ts) => ts.filter((t) => t.id !== deleting.id));
     setDeleting(null);
@@ -81,7 +85,7 @@ export default function AdminThreads() {
         open={!!deleting}
         onOpenChange={(o) => !o && setDeleting(null)}
         title="Excluir este tópico?"
-        description="Todas as respostas dentro deste tópico também serão excluídas permanentemente."
+        description="O tópico e todas as respostas dentro dele ficarão ocultos. Um admin pode reativá-los depois."
         onConfirm={handleDelete}
       />
     </div>

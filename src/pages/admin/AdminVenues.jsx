@@ -16,7 +16,7 @@ export default function AdminVenues() {
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase.from("venues").select("*");
+    const { data } = await supabase.from("venues").select("*").eq("status", "active");
     setVenues(data || []);
     setLoading(false);
   };
@@ -28,7 +28,7 @@ export default function AdminVenues() {
   const { sort, handleSort, sorted: sortedVenues } = useAdminSort(venues);
 
   const handleDelete = async () => {
-    await supabase.from("venues").delete().eq("id", deleting.id);
+    await supabase.from("venues").update({ status: "disabled" }).eq("id", deleting.id);
     setVenues((vs) => vs.filter((v) => v.id !== deleting.id));
     setDeleting(null);
   };

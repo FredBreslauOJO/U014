@@ -17,6 +17,7 @@ export default function AdminContactMessages() {
     const { data } = await supabase
       .from("contact_messages")
       .select("*")
+      .eq("status", "active")
       .order("created_date", { ascending: false });
     setMessages(data || []);
     setLoading(false);
@@ -27,7 +28,7 @@ export default function AdminContactMessages() {
   }, []);
 
   const handleDelete = async () => {
-    await supabase.from("contact_messages").delete().eq("id", deleting.id);
+    await supabase.from("contact_messages").update({ status: "disabled" }).eq("id", deleting.id);
     setMessages((ms) => ms.filter((m) => m.id !== deleting.id));
     setDeleting(null);
   };
