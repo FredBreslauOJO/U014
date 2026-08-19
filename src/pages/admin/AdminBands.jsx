@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Plus, Music2 } from "lucide-react";
 import { supabase } from "@/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import TagInput from "@/components/TagInput";
 import { GENRES } from "@/lib/genres";
+import { formatUrl } from "@/lib/supabaseStorage";
 import AdminEntityTable from "@/components/admin/AdminEntityTable";
 import AdminFormDialog from "@/components/admin/AdminFormDialog";
 import AdminDeleteConfirm from "@/components/admin/AdminDeleteConfirm";
@@ -20,23 +21,61 @@ const INITIAL_FORM = {
 
 export default function AdminBands() {
   const [bands, setBands] = useState([]);
+  const [profilesById, setProfilesById] = useState({});
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(INITIAL_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(null);
+  const [sort, setSort] = useState({ key: "created_date", dir: "desc" });
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase.from("bands").select("*").order("created_date", { ascending: false });
-    setBands(data || []);
+    const [{ data: bandsData }, { data: profilesData }] = await Promise.all([
+      supabase.from("bands").select("*"),
+      supabase.from("profiles").select("id, email, full_name"),
+    ]);
+    setBands(bandsData || []);
+    setProfilesById(Object.fromEntries((profilesData || []).map((p) => [p.id, p])));
     setLoading(false);
   };
 
   useEffect(() => {
     load();
   }, []);
+
+  const ownerName = (b) => {
+    const profile = profilesById[b.created_by_id];
+    return profile?.full_name || profile?.email || b.email || "—";
+  };
+
+  const handleSort = (key) => {
+    setSort((s) => (s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" }));
+  };
+
+  const sortedBands = useMemo(() => {
+    const dir = sort.dir === "asc" ? 1 : -1;
+    const value = (b) => {
+      switch (sort.key) {
+        case "created_date":
+          return new Date(b.created_date).getTime();
+        case "genres":
+          return (b.genres?.length ? b.genres.join(", ") : b.genre || "").toLowerCase();
+        case "owner":
+          return ownerName(b).toLowerCase();
+        default:
+          return (b[sort.key] || "").toLowerCase?.() ?? b[sort.key];
+      }
+    };
+    return [...bands].sort((a, b) => {
+      const va = value(a);
+      const vb = value(b);
+      if (va < vb) return -1 * dir;
+      if (va > vb) return 1 * dir;
+      return 0;
+    });
+  }, [bands, sort, profilesById]);
 
   const openCreate = () => {
     setEditing(null);
@@ -80,9 +119,53 @@ export default function AdminBands() {
   };
 
   const columns = [
-    { key: "name", label: "Nome" },
-    { key: "city", label: "Cidade", render: (r) => r.city || "—" },
-    { key: "genres", label: "Estilos", render: (r) => (r.genres?.length ? r.genres.join(", ") : r.genre) || "—" },
+    {
+      key: "icon",
+      label: "",
+      render: (r) =>
+        r.logo_url || r.photo_url ? (
+          <img
+            src={formatUrl(r.logo_url || r.photo_url)}
+            alt=""
+            className="w-8 h-8 rounded object-cover bg-[#1a1a1a]"
+          />
+        ) : (
+          <div className="w-8 h-8 rounded bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center text-[#505050]">
+            <Music2 size={14} />
+          </div>
+        ),
+    },
+    { key: "name", label: "Nome", sortable: true },
+    { key: "city", label: "Cidade", sortable: true, render: (r) => r.city || "—" },
+    { key: "owner", label: "Dono", sortable: true, render: (r) => ownerName(r) },
+    {
+      key: "genres",
+      label: "Estilos",
+      sortable: true,
+      render: (r) => {
+        const genres = r.genres?.length ? r.genres : r.genre ? [r.genre] : [];
+        return genres.length ? (
+          <div className="flex flex-wrap gap-1">
+            {genres.map((g) => (
+              <span
+                key={g}
+                className="text-[10px] font-bold text-[#a8f776] uppercase tracking-wider bg-[#a8f776]/10 px-2 py-0.5 rounded"
+              >
+                {g}
+              </span>
+            ))}
+          </div>
+        ) : (
+          "—"
+        );
+      },
+    },
+    {
+      key: "created_date",
+      label: "Criado em",
+      sortable: true,
+      render: (r) => new Date(r.created_date).toLocaleDateString("pt-BR"),
+    },
   ];
 
   return (
@@ -94,7 +177,15 @@ export default function AdminBands() {
         </Button>
       </div>
 
-      <AdminEntityTable columns={columns} rows={bands} loading={loading} onEdit={openEdit} onDelete={setDeleting} />
+      <AdminEntityTable
+        columns={columns}
+        rows={sortedBands}
+        loading={loading}
+        onEdit={openEdit}
+        onDelete={setDeleting}
+        sort={sort}
+        onSortChange={handleSort}
+      />
 
       <AdminFormDialog
         open={isOpen}

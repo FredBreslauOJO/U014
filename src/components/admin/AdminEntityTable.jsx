@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ArrowUpDown, Pencil, Trash2 } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -21,6 +21,8 @@ export default function AdminEntityTable({
   onDelete,
   renderRowActions,
   emptyLabel = "Nenhum registro encontrado.",
+  sort,
+  onSortChange,
 }) {
   const [page, setPage] = useState(0);
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
@@ -31,11 +33,31 @@ export default function AdminEntityTable({
       <Table>
         <TableHeader>
           <TableRow className="border-[#1e1e1e] hover:bg-transparent">
-            {columns.map((col) => (
-              <TableHead key={col.key} className="text-[#a0a0a0]">
-                {col.label}
-              </TableHead>
-            ))}
+            {columns.map((col) =>
+              col.sortable ? (
+                <TableHead key={col.key} className="text-[#a0a0a0] p-0">
+                  <button
+                    onClick={() => onSortChange?.(col.key)}
+                    className="w-full flex items-center gap-1 px-2 py-2.5 hover:text-white transition-colors"
+                  >
+                    {col.label}
+                    {sort?.key === col.key ? (
+                      sort.dir === "asc" ? (
+                        <ChevronUp size={12} />
+                      ) : (
+                        <ChevronDown size={12} />
+                      )
+                    ) : (
+                      <ArrowUpDown size={11} className="opacity-40" />
+                    )}
+                  </button>
+                </TableHead>
+              ) : (
+                <TableHead key={col.key} className="text-[#a0a0a0]">
+                  {col.label}
+                </TableHead>
+              )
+            )}
             {(onEdit || onDelete || renderRowActions) && (
               <TableHead className="text-[#a0a0a0] text-right">Ações</TableHead>
             )}
