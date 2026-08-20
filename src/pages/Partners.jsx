@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Search, Briefcase, Plus, Phone, Instagram, ExternalLink, Edit2, Trash2, X } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
+import { useIsAdmin } from "@/lib/useIsAdmin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,6 +42,7 @@ export default function Partners() {
   const [submitting, setSubmitting] = useState(false);
 
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
 
   const loadPartners = async () => {
     setLoading(true);
@@ -86,7 +88,7 @@ export default function Partners() {
   const handleDelete = async (id) => {
     if (!window.confirm("Certeza que deseja excluir este cadastro?")) return;
     try {
-      await supabase.from('partners').delete().eq('id', id);
+      await supabase.from('partners').update({ status: 'disabled' }).eq('id', id);
       setPartners(partners.filter((p) => p.id !== id));
     } catch (e) {
       alert("Erro ao excluir.");
@@ -187,7 +189,7 @@ export default function Partners() {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((p) => {
-            const isOwner = user && (p.created_by_id === user.id || user.role === "admin");
+            const isOwner = user && (p.created_by_id === user.id || isAdmin);
 
             return (
               <div

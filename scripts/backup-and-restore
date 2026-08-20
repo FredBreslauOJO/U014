@@ -17,9 +17,15 @@ LOCAL_DB_NAME="${LOCAL_DB_NAME:-postgres}"
 # Docker container running local Supabase postgres (fallback when host has no psql)
 LOCAL_DB_CONTAINER="${LOCAL_DB_CONTAINER:-supabase_db_underground014.com.br}"
 
+# auth.* tables that must NOT be touched by backup/restore: schema_migrations is
+# GoTrue's own migration bookkeeping, instances is its single config row. Wiping
+# either breaks the local auth service, not just its data.
+AUTH_PRESERVE_TABLES=(schema_migrations instances)
+
 psql_local() {
   if command -v psql &> /dev/null; then
     PGPASSWORD="${LOCAL_DB_PASSWORD}" psql \
+      -q \
       -h "${LOCAL_DB_HOST}" \
       -p "${LOCAL_DB_PORT}" \
       -U "${LOCAL_DB_USER}" \
@@ -29,7 +35,7 @@ psql_local() {
     docker exec -i \
       -e PGPASSWORD="${LOCAL_DB_PASSWORD}" \
       "${LOCAL_DB_CONTAINER}" \
-      psql -U "${LOCAL_DB_USER}" -d "${LOCAL_DB_NAME}" "$@"
+      psql -q -U "${LOCAL_DB_USER}" -d "${LOCAL_DB_NAME}" "$@"
   fi
 }
 
@@ -96,12 +102,29 @@ GRANT ALL ON SCHEMA public TO public;
 SQL
 }
 
+clear_local_auth_data() {
+  echo "Clearing local 'auth' data (preserving schema + GoTrue bookkeeping)..."
+  local tables
+  tables=$(psql_local -Atc "
+    select string_agg(quote_ident('auth') || '.' || quote_ident(tablename), ', ')
+    from pg_tables
+    where schemaname = 'auth'
+      and tablename not in ($(printf "'%s'," "${AUTH_PRESERVE_TABLES[@]}" | sed 's/,$//'))
+  ")
+  if [ -n "${tables}" ]; then
+    psql_local -v ON_ERROR_STOP=1 -c "TRUNCATE ${tables} CASCADE;"
+  fi
+}
+
 backup() {
   check_supabase_cli
   ensure_backup_dir
 
   local schema_file="${BACKUP_FILE%.sql}.schema.sql"
   local data_file="${BACKUP_FILE%.sql}.data.sql"
+  local auth_data_file="${BACKUP_FILE%.sql}.auth-data.sql"
+  local auth_exclude
+  auth_exclude=$(printf 'auth.%s,' "${AUTH_PRESERVE_TABLES[@]}" | sed 's/,$//')
 
   echo "Backing up Supabase schema+data to ${BACKUP_FILE}..."
 
@@ -115,10 +138,20 @@ backup() {
     exit 1
   fi
 
-  cat "${schema_file}" "${data_file}" > "${BACKUP_FILE}"
-  rm -f "${schema_file}" "${data_file}"
+  # auth data only -- never its schema (GoTrue owns those migrations), and never
+  # schema_migrations/instances (see AUTH_PRESERVE_TABLES). Contains password
+  # hashes, OAuth tokens, and session data -- treat this file as a secret.
+  if ! (cd "${SCRIPT_DIR}" && supabase db dump --linked --schema auth --data-only --use-copy \
+      --exclude "${auth_exclude}" -f "${auth_data_file}"); then
+    echo "✗ Auth data backup failed"
+    exit 1
+  fi
+
+  cat "${schema_file}" "${data_file}" "${auth_data_file}" > "${BACKUP_FILE}"
+  rm -f "${schema_file}" "${data_file}" "${auth_data_file}"
 
   echo "✓ Backup successful: ${BACKUP_FILE}"
+  echo "  Contains real auth data (password hashes, OAuth tokens) -- never share or commit this file."
 }
 
 restore() {
@@ -132,6 +165,7 @@ restore() {
   check_local_postgres
   ensure_backup_dir
   reset_local_schema
+  clear_local_auth_data
 
   echo "Restoring from ${dump_file} into local Supabase..."
 

@@ -6,7 +6,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { usePlayer } from "@/lib/playerContext";
 import FeatureBanner from "@/components/home/FeatureBanner";
 import BannerSubmit from "@/components/home/BannerSubmit";
-import BannerAdmin from "@/components/home/BannerAdmin";
 import Logo from "@/components/Logo";
 import { bandUrl } from "@/lib/slug";
 import { getDateInLocalTimezone } from "@/lib/date";
@@ -75,11 +74,9 @@ export default function Home() {
   const [showsView, setShowsView] = useState("list");
   const [partners, setPartners] = useState([]);
   const [banners, setBanners] = useState([]);
-  const [pending, setPending] = useState([]);
   const [submitOpen, setSubmitOpen] = useState(false);
   const { user } = useAuth();
   const { playTrack } = usePlayer();
-  const isAdmin = user?.role === "admin" || user?.user_metadata?.role === "admin";
 
   useEffect(() => {
     supabase.from("bands").select("*").order("created_date", { ascending: false }).limit(50).then(({ data }) => data && setBands(data));
@@ -97,12 +94,6 @@ export default function Home() {
       .then(({ data }) => data && setShows(data));
   }, []);
 
-  useEffect(() => {
-    if (isAdmin) {
-      supabase.from("banners").select("*").eq("status", "pending").then(({ data }) => data && setPending(data));
-    }
-  }, [user, isAdmin]);
-
   const featuredBands = useMemo(() => {
     const shuffled = [...bands].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, 8);
@@ -118,27 +109,12 @@ export default function Home() {
   const homeShows = upcomingShows.slice(0, 6);
 
   const submitBanner = async (form) => {
-    const { data: created, error } = await supabase.from("banners").insert([{
+    await supabase.from("banners").insert([{
       ...form,
       status: "pending",
       author_name: user?.user_metadata?.full_name || user?.email || "Anônimo",
       created_by_id: user?.id
     }]).select().single();
-
-    if (!error && created && isAdmin) {
-      setPending((p) => [created, ...p]);
-    }
-  };
-
-  const approveBanner = async (b) => {
-    await supabase.from("banners").update({ status: "approved" }).eq("id", b.id);
-    setPending((p) => p.filter((x) => x.id !== b.id));
-    setBanners((bs) => [{ ...b, status: "approved" }, ...bs]);
-  };
-
-  const rejectBanner = async (b) => {
-    await supabase.from("banners").update({ status: "rejected" }).eq("id", b.id);
-    setPending((p) => p.filter((x) => x.id !== b.id));
   };
 
   return (
@@ -190,7 +166,6 @@ export default function Home() {
 
         {/* Banner Principal */}
         <section className="mb-10">
-          {isAdmin && <BannerAdmin pending={pending} onApprove={approveBanner} onReject={rejectBanner} />}
           <FeatureBanner
             banners={banners.filter((b) => b.status === "approved")}
             onSuggest={() => setSubmitOpen(true)}

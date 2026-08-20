@@ -115,7 +115,7 @@ export default function News() {
 
   const removeNews = async (id, e) => {
     e.stopPropagation();
-    await supabase.from('news').delete().eq('id', id);
+    await supabase.from('news').update({ status: 'disabled' }).eq('id', id);
     setNews(news.filter((n) => n.id !== id));
   };
 

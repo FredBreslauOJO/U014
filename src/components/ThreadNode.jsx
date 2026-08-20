@@ -73,7 +73,7 @@ const processAndUploadImage = async (file) => {
   });
 };
 
-export default function ThreadNode({ node, childrenMap, user, onReply, onDelete, depth = 0 }) {
+export default function ThreadNode({ node, childrenMap, user, isAdmin, onReply, onDelete, depth = 0 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [composing, setComposing] = useState(false);
   const [text, setText] = useState("");
@@ -87,7 +87,7 @@ export default function ThreadNode({ node, childrenMap, user, onReply, onDelete,
   const [lightboxImage, setLightboxImage] = useState("");
 
   const children = (childrenMap[node.id] || []).slice().sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-  const canDelete = user && (user.id === node.created_by_id || user.role === "admin");
+  const canDelete = user && (user.id === node.created_by_id || isAdmin);
   const isTopic = depth === 0;
   const heat = isTopic ? computeHeat(collectThreadDates(childrenMap, node.id, node.created_date)) : 0;
 
@@ -217,7 +217,7 @@ export default function ThreadNode({ node, childrenMap, user, onReply, onDelete,
       {!collapsed && children.length > 0 && (
         <div className="mt-2 space-y-2">
           {children.map((child) => (
-            <ThreadNode key={child.id} node={child} childrenMap={childrenMap} user={user} onReply={onReply} onDelete={onDelete} depth={depth + 1} />
+            <ThreadNode key={child.id} node={child} childrenMap={childrenMap} user={user} isAdmin={isAdmin} onReply={onReply} onDelete={onDelete} depth={depth + 1} />
           ))}
         </div>
       )}

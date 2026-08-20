@@ -124,6 +124,13 @@ file_size_limit = "50MiB"
 # allowed_mime_types = ["image/png", "image/jpeg"]
 # objects_path = "./images"
 
+# Matches prod's public bucket. Declared here so `supabase db reset`/`start`
+# always recreates it -- object contents still need a manual resync after a
+# reset (`supabase storage cp -r ss:///underground-images <dir> --linked`
+# then `... --local`), but the bucket itself won't silently disappear again.
+[storage.buckets.underground-images]
+public = true
+
 # Allow connections via S3 compatible clients
 [storage.s3_protocol]
 enabled = true
@@ -160,7 +167,7 @@ site_url = "http://127.0.0.1:3000"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+additional_redirect_urls = ["https://127.0.0.1:3000", "https://underground014.local", "https://underground014.local/reset-password"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.

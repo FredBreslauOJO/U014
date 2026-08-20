@@ -7,6 +7,7 @@ import { getDateInLocalTimezone } from "@/lib/date";
 export default function ShowCard({
   show,
   user,
+  isAdmin,
   expanded,
   onToggle,
   onEdit,
@@ -15,11 +16,7 @@ export default function ShowCard({
   isCopied,
 }) {
   // O criador do evento ou admin pode EDITAR A QUALQUER MOMENTO (Sem limite de tempo!)
-  const canEdit =
-    user &&
-    (show.created_by_id === user.id ||
-      user.role === "admin" ||
-      user.user_metadata?.role === "admin");
+  const canEdit = user && (show.created_by_id === user.id || isAdmin);
 
   const formattedDate = getDateInLocalTimezone(show.date).toLocaleDateString("pt-BR", {
     weekday: "short",
