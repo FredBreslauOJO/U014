@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 
 import Home from "@/pages/Home";
+import Manifesto from "@/pages/Manifesto";
 import Bands from "@/pages/Bands";
 import BandDetail from "@/pages/BandDetail";
 import BandRegister from "@/pages/BandRegister";
@@ -37,6 +38,7 @@ export default function App() {
             {/* Rotas Públicas com Layout */}
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
+              <Route path="/manifesto" element={<Manifesto />} />
               <Route path="/bands" element={<Bands />} />
               <Route path="/bands/:slug" element={<BandDetail />} />
               <Route path="/shows" element={<Shows />} />

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Home as HomeIcon,
+  Megaphone,
   Users,
   CalendarDays,
   Building2,
@@ -21,6 +22,7 @@ import { bandUrl } from '@/lib/slug';
 
 const navItems = [
   { to: '/', label: 'Início', icon: HomeIcon, end: true },
+  { to: '/manifesto', label: 'Manifesto', icon: Megaphone },
   { to: '/bands', label: 'Bandas', icon: Music2 },
   { to: '/shows', label: 'Shows', icon: CalendarDays },
   { to: '/venues', label: 'Casas de Shows', icon: Building2 },

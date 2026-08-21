@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, MapPin, Flame, ChevronRight, Briefcase, List, GalleryHorizontal } from "lucide-react";
+import { CalendarDays, MapPin, Flame, ChevronRight, Briefcase, List, GalleryHorizontal, Megaphone } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import { usePlayer } from "@/lib/playerContext";
@@ -180,13 +180,40 @@ export default function Home() {
       />
 
       <div className="relative z-10">
-        <div className="mb-10 flex flex-col items-center text-center">
+        <div className="mb-8 flex flex-col items-center text-center">
           <Logo className="h-36 md:h-52 w-auto mb-6" />
           <p className="text-[#909090] text-sm md:text-base max-w-2xl leading-relaxed">
             A plataforma da cena underground local. <br />
             Promova seu material, encontre parcerias, divulgue shows e junte a galera.
           </p>
         </div>
+
+        {/* CHAMADA DE DESTAQUE PARA O MANIFESTO */}
+        <section className="mb-12 flex justify-center">
+          <Link to="/manifesto" className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-[#121212] to-[#1a1a1a] border border-[#a8f776]/40 hover:border-[#a8f776] w-full max-w-3xl p-6 transition-all duration-300">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Megaphone size={80} className="text-[#a8f776] -rotate-12" />
+            </div>
+            <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
+              <div className="text-center sm:text-left flex-1">
+                <div className="inline-flex items-center gap-2 text-[#a8f776] font-bold text-xs uppercase tracking-widest mb-2 bg-[#a8f776]/10 px-2 py-1 rounded">
+                  <Flame size={12} /> Do It Ourselves
+                </div>
+                <h2 className="text-2xl md:text-3xl font-black text-white mb-2 leading-tight">
+                  Leia o nosso Manifesto
+                </h2>
+                <p className="text-[#a0a0a0] text-sm md:text-base leading-relaxed max-w-lg">
+                  Não somos agência, não somos panela, não somos algoritmos. Entenda as regras do jogo, a nossa ética de trabalho e por que criamos a rede do 014.
+                </p>
+              </div>
+              <div className="shrink-0 flex items-center justify-center sm:self-center">
+                <div className="flex items-center gap-2 bg-[#a8f776] text-black px-5 py-3 rounded-lg font-bold text-sm hover:bg-white transition-colors">
+                  Acessar <ChevronRight size={16} />
+                </div>
+              </div>
+            </div>
+          </Link>
+        </section>
 
         {/* Banner Principal */}
         <section className="mb-10">
