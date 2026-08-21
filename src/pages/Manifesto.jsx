@@ -19,19 +19,14 @@ export default function Manifesto() {
         {/* Espaçador para o título ficar mais para baixo, mostrando a imagem */}
         <div className="h-[250px] w-full"></div>
 
-        {/* Título e Link */}
-        <div className="text-center mb-12 w-full">
-          <div className="bg-black px-4 py-1 inline-block mb-2 rounded">
-            <h1 className="text-3xl md:text-5xl font-black text-white uppercase tracking-widest m-0 leading-tight">
-              O Manifesto
-            </h1>
-          </div>
+        {/* Título */}
+        <div className="text-center mb-12 w-full drop-shadow-lg">
+          <h1 className="text-3xl md:text-5xl font-black text-white uppercase tracking-widest mb-1 leading-tight">
+            O Manifesto
+          </h1>
           <h2 className="text-3xl md:text-5xl font-black text-[#a8f776] uppercase tracking-wide leading-tight">
             Underground 014
           </h2>
-          <p className="text-[#a8f776] text-sm md:text-base mt-3 font-bold tracking-widest uppercase">
-            underground014.com.br/manifesto
-          </p>
         </div>
 
         {/* Texto do Manifesto (Revisado com as Cidades) */}
@@ -75,7 +70,7 @@ export default function Manifesto() {
           </p>
         </div>
 
-        {/* O Que Somos e O Que Não Somos (DE VOLTA AQUI) */}
+        {/* O Que Somos e O Que Não Somos */}
         <div className="grid md:grid-cols-2 gap-6 mb-16 w-full">
           {/* O que SOMOS */}
           <div className="bg-[#101a12] border border-[#2e7d15]/30 p-6 rounded-xl flex flex-col">
@@ -122,7 +117,7 @@ export default function Manifesto() {
           </div>
         </div>
 
-        {/* Regras e Ética de Trabalho (DE VOLTA AQUI) */}
+        {/* Regras e Ética de Trabalho */}
         <section className="mb-12 w-full">
           <div className="flex items-center gap-2 mb-6">
             <ScrollText size={24} className="text-[#a8f776]" />
