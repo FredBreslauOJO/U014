@@ -1,169 +1,141 @@
-import React from "react";
-import { Users, ShieldAlert, Zap, Megaphone, Handshake, ScrollText } from "lucide-react";
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manifesto | Underground 014</title>
+    <!-- Incluindo Tailwind CSS para estilização (conforme seu exemplo) -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Ajustes finos para garantir que a imagem ocupe a horizontal inteira e o texto fique legível */
+        .manifesto-bg {
+            background-image: url('/images/manifestoBG.png'); /* Chamada da imagem na pasta public/images */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            width: 100%;
+        }
+        /* Estilo para a caixa do título (conforme seu exemplo) */
+        .titulo-container {
+            position: relative;
+            background-color: transparent;
+        }
+        .manifesto-titulo-box {
+            background-color: #000;
+            padding: 10px;
+            display: inline-block;
+            border-radius: 4px;
+        }
+        .manifesto-titulo {
+            background-color: #A3E635; /* Verde limão vibrante */
+            color: #000;
+            padding: 0 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .manifesto-subtitulo {
+            color: #A3E635;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        /* Estilo para o bloco de texto inferior sobre fundo escuro */
+        .texto-bloco-inferior {
+            background-color: #0e0e0e; /* Fundo escuro do site */
+            padding-top: 40px;
+            padding-bottom: 60px;
+        }
+    </style>
+</head>
+<body class="bg-[#0e0e0e] text-white">
 
-export default function Manifesto() {
-  return (
-    <div className="px-4 md:px-8 py-10 max-w-[900px] mx-auto text-[#d0d0d0]">
-      {/* Header */}
-      <div className="mb-12 text-center">
-        <span className="text-[#a8f776] uppercase tracking-widest font-black text-sm mb-2 block">
-          A Plataforma da Cena
-        </span>
-        <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight uppercase leading-none">
-          O Manifesto <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a8f776] to-[#2e7d15]">
-            Underground 014
-          </span>
-        </h1>
-      </div>
-
-      {/* Introdução / Manifesto Principal na Íntegra */}
-      <section className="mb-12 bg-[#121212] border border-[#1e1e1e] p-6 md:p-8 rounded-xl leading-relaxed text-[15px] sm:text-base space-y-4">
-        <p className="font-bold text-lg text-white mb-2">DO IT OURSELVES!</p>
-        <p>
-          O underground é a fonte de toda cultura e inovação que existe no mundo. Sem o underground, não existe mainstream.
-        </p>
-        <p>
-          São os artistas, a cena e a rede de contatos que não só fomentam a verdadeira inovação cultural, como também são a fonte de uma economia gigante que passa despercebida dos grandes holofotes.
-        </p>
-        <p>
-          Nós geramos ideias, movimentamos o mercado de trabalho e, com nossas criações, geramos valor econômico e cultural. Somos a história e somos a cultura que vibra e reflete o nosso mundo.
-        </p>
-        <p>
-          O Underground 014 surge como uma resposta a um mundo massificado que impõe formas predeterminadas de consumir cultura, que quase nunca refletem os interesses daqueles que a consomem. Somos forçados por algoritmos e plataformas a consumir aquilo que é do interesse de grupos e empresas com capital infinito, mas que, no final, só existem porque NÓS existimos, porque nós insistimos. 
-        </p>
-        <p>
-          O Underground é um ato de resistência, de organização coletiva e também de educação e preservação da nossa história e modos de vida. Sem o underground nos tornamos meros consumidores. O underground liberta, esclarece, cria algo a partir do nada. Isso é o poder da criação genuína e estamos aqui para lutar para que todos nós tenhamos esse direito preservado. Mas nada disso é feito sem união, sem a força do coletivo, sem a luta do grupo.
-        </p>
-        <p>
-          Mais do que respeitar a diversidade, abraçamos todas as culturas que fomentam a cena do underground da nossa região. Somos em nossa maioria músicos, mas também ilustradores, comerciantes, prestadores de serviço e artistas dos mais diferentes tipos que fazem da cena algo real e tangível. É um universo multifacetado, composto por diferentes gêneros, histórias e competências, e por isso mesmo somos fortes.
-        </p>
-        <p>
-          Por isso, abraçamos e respeitamos a diversidade como um princípio básico deste grupo.
-        </p>
-        <p>
-          Todos são bem-vindos, não há líderes e não há seguidores. Esse espaço é de todos, de forma autônoma, mas sob a responsabilidade de cada um.
-        </p>
-        <p>
-          O underground nunca morre, mas cabe a nós lutar por uma vida próspera e rica.
-        </p>
-      </section>
-
-      {/* O Que Somos e O Que Não Somos */}
-      <div className="grid md:grid-cols-2 gap-6 mb-12">
-        {/* O que SOMOS */}
-        <div className="bg-[#101a12] border border-[#2e7d15]/30 p-6 rounded-xl flex flex-col">
-          <div className="flex items-center gap-2 mb-4 text-[#a8f776]">
-            <Users size={24} />
-            <h2 className="text-xl font-black uppercase tracking-wide">O que SOMOS</h2>
-          </div>
-          <ul className="space-y-4 text-sm md:text-base text-[#b0b0b0] flex-1">
-            <li className="flex items-start gap-2">
-              <span className="text-[#a8f776] mt-1 shrink-0">✔</span>
-              <span><strong>Uma ferramenta de conscientização e união:</strong> Uma rede criada de forma orgânica e coletiva, onde dezenas de pessoas debatem diariamente para fomentar a região.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#a8f776] mt-1 shrink-0">✔</span>
-              <span><strong>Um facilitador de intercâmbio:</strong> Conectamos Bauru, Jaú, Botucatu, Marília e toda a região para que as bandas circulem e compartilhem públicos, equipamentos e palcos.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#a8f776] mt-1 shrink-0">✔</span>
-              <span><strong>Totalmente gratuitos e abertos:</strong> O projeto não tem amarras, não tem dono central, não tem cobrança. No Slaves, No Masters!</span>
-            </li>
-          </ul>
-        </div>
-
-        {/* O que NÃO somos */}
-        <div className="bg-[#1a1010] border border-red-900/30 p-6 rounded-xl flex flex-col">
-          <div className="flex items-center gap-2 mb-4 text-red-400">
-            <ShieldAlert size={24} />
-            <h2 className="text-xl font-black uppercase tracking-wide">O que NÃO somos</h2>
-          </div>
-          <ul className="space-y-4 text-sm md:text-base text-[#b0b0b0] flex-1">
-            <li className="flex items-start gap-2">
-              <span className="text-red-500 mt-1 shrink-0">✖</span>
-              <span><strong>Não somos uma agência de shows:</strong> O portal não é um "Job Center". Não estamos aqui para arrumar gigs ou agenciar a sua banda. O corre ainda é seu, nós apenas fornecemos as ferramentas e a rede de contatos.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-red-500 mt-1 shrink-0">✖</span>
-              <span><strong>Não somos uma "panelinha":</strong> Nosso objetivo não é fechar um círculo de amigos. Queremos expansão, braços abertos para quem chegar com respeito e vontade de somar.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-red-500 mt-1 shrink-0">✖</span>
-              <span><strong>Não somos um balcão de negócios:</strong> Não vamos retirar a autonomia de ninguém para trancar artistas em modelos fechados de contrato ou cobrar porcentagens.</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      {/* Regras e Ética de Trabalho */}
-      <section className="mb-12">
-        <div className="flex items-center gap-2 mb-6">
-          <ScrollText size={24} className="text-[#a8f776]" />
-          <h2 className="text-2xl font-black text-white uppercase tracking-wide">Guia de Conduta e Ética</h2>
-        </div>
-        
-        <div className="space-y-4">
-          <div className="bg-[#121212] border border-[#1e1e1e] p-5 rounded-lg flex gap-4 items-start">
-            <Handshake className="text-[#a8f776] shrink-0 mt-1" size={20} />
-            <div>
-              <h3 className="text-white font-bold mb-1">Apoio Mútuo e Ação Direta</h3>
-              <p className="text-sm text-[#a0a0a0]">Se você quer que as casas de show abram portas para o seu projeto, prestigie o projeto dos seus pares. Vá aos shows, consuma no bar, compre o merchandising da banda amiga. A cena só sobrevive e se mostra rentável quando a gente se faz presente no público, e não apenas no palco.</p>
+    <div class="flex">
+        <!-- Barra Lateral Esquerda (conforme seu exemplo) -->
+        <aside class="w-64 bg-[#0e0e0e] p-6 flex flex-col border-r border-gray-800">
+            <div class="mb-10 flex items-center">
+                <img src="/logo-example.png" alt="UNDERGROUND 014" class="h-12 mr-3">
+                <h1 class="text-white text-xl font-black">UNDERGROUND 014</h1>
             </div>
-          </div>
-
-          <div className="bg-[#121212] border border-[#1e1e1e] p-5 rounded-lg flex gap-4 items-start">
-            <Sparkles className="text-[#a8f776] shrink-0 mt-1" size={20} />
-            <div>
-              <h3 className="text-white font-bold mb-1">Toda Arte Importa</h3>
-              <p className="text-sm text-[#a0a0a0]">O Underground não é exclusivo do Rock ou do Metal. Se você é do Hip Hop, Rap, Música Eletrônica, Punk, Funk, Ska ou Alternativo, o espaço é seu. Todo artista com som autoral e algo genuíno a dizer sofre com as mesmas faltas de espaço. O inimigo é outro; entre nós, existe apenas união.</p>
+            <nav class="space-y-4">
+                <a href="#" class="flex items-center text-gray-400 hover:text-white">
+                    <span class="material-icons mr-3">home</span> Início
+                </a>
+                <a href="#" class="flex items-center text-white font-bold bg-gray-800 p-2 rounded">
+                    <span class="material-icons mr-3">library_books</span> Manifesto
+                </a>
+                <a href="#" class="flex items-center text-gray-400 hover:text-white">
+                    <span class="material-icons mr-3">bands</span> Bandas
+                </a>
+                <!-- ... outros links ... -->
+            </nav>
+            
+            <div class="mt-10 border-t border-gray-800 pt-6">
+                <h2 class="text-gray-600 text-xs uppercase font-bold mb-4">Minhas Bandas</h2>
+                <!-- Lista de bandas conforme seu exemplo -->
+                <ul class="space-y-2 text-gray-400 text-sm">
+                    <li>Überide</li>
+                    <li>Plenitude S.A.</li>
+                    <li>...outras</li>
+                </ul>
             </div>
-          </div>
-
-          <div className="bg-[#121212] border border-[#1e1e1e] p-5 rounded-lg flex gap-4 items-start">
-            <Megaphone className="text-[#a8f776] shrink-0 mt-1" size={20} />
-            <div>
-              <h3 className="text-white font-bold mb-1">Ocupar, Resistir e Respeitar</h3>
-              <p className="text-sm text-[#a0a0a0]">Todo espaço disposto a nos receber será ocupado. Seja um pub, uma pista de skate, uma praça ou um bar no interior. Contudo, exigimos e praticamos o respeito. Nenhuma forma de fascismo, racismo, machismo ou preconceito tem lugar aqui. Não seja pilantra, respeite o rolê e os trabalhadores envolvidos.</p>
+            
+            <div class="mt-auto border-t border-gray-800 pt-6 flex items-center">
+                <img src="/perfil-exemplo.png" alt="" class="w-10 h-10 rounded-full mr-3">
+                <div>
+                    <p class="text-white text-sm font-bold">Frederico Breslau</p>
+                    <a href="#" class="text-gray-500 text-xs">Gerenciar</a>
+                </div>
             </div>
-          </div>
+        </aside>
 
-          <div className="bg-[#121212] border border-[#1e1e1e] p-5 rounded-lg flex gap-4 items-start">
-            <Zap className="text-[#a8f776] shrink-0 mt-1" size={20} />
-            <div>
-              <h3 className="text-white font-bold mb-1">Livre de Algoritmos</h3>
-              <p className="text-sm text-[#a0a0a0]">Essa plataforma é o nosso oásis longe das mega-corporações de tecnologia. Aqui, não existe um robô escondendo o seu trabalho porque você não pagou impulsionamento. Seu material está lado a lado com os grandes nomes da nossa região. Divulgue, atualize e utilize essa rede a seu favor.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+        <!-- Área de Conteúdo Principal -->
+        <main class="flex-1">
+            <!-- Bloco da Imagem ManifestoBG e Título (ocupa horizontal inteira) -->
+            <section class="manifesto-bg flex items-center justify-center h-[500px] relative">
+                <!-- Título centralizado (conforme seu exemplo) -->
+                <div class="text-center p-6 text-xl">
+                    <div class="manifesto-titulo-box mb-3">
+                        <span class="manifesto-titulo">O MANIFESTO</span>
+                    </div>
+                    <p class="manifesto-subtitulo">UNDERGROUND 014</p>
+                </div>
+            </section>
 
-      {/* Encerramento */}
-      <div className="text-center mt-16 pb-8 border-t border-[#222] pt-8">
-        <p className="text-[#808080] font-medium tracking-wider uppercase text-sm mb-2">Juntos somos mais fortes.</p>
-        <p className="text-[#a8f776] font-black text-2xl md:text-3xl">DIY OR DIE. DO IT OURSELVES.</p>
-      </div>
+            <!-- Bloco de Texto do Manifesto sobre Fundo Escuro -->
+            <section class="texto-bloco-inferior p-8 md:p-12">
+                <div class="max-w-3xl mx-auto space-y-6 text-gray-100 text-sm md:text-base leading-relaxed">
+                    <p class="font-bold">DO IT OURSELVES!</p>
+                    
+                    <p>
+                        O underground é a fonte de toda cultura e inovação que existe no mundo. Sem o underground, não existe mainstream.
+                    </p>
+                    
+                    <p>
+                        São os artistas, a cena e a rede de contatos que não só fomentam a verdadeira inovação cultural, como também são a fonte de uma economia gigante que passa despercebida dos grandes holofotes.
+                    </p>
+                    
+                    <p>
+                        Nós geramos ideias, movimentamos o mercado de trabalho e, com nossas criações, geramos valor econômico e cultural. Somos a história e somos a cultura que vibra e reflete o nosso mundo.
+                    </p>
+                    
+                    <p>
+                        O Underground 014 surge como uma resposta a um mundo massificado que impõe formas predeterminadas de consumir cultura, que quase nunca refletem os interesses daqueles que a consomem. Somos forçados por algoritmos e plataformas a consumir aquilo que é do interesse de grupos e empresas com capital infinito, mas que, no final, só existem porque NÓS existimos, porque nós insistimos.
+                    </p>
+                    
+                    <p>
+                        O Underground é um ato de resistência, de organização coletiva e também de educação e preservação da nossa história e modos de vida. Sem o underground nos tornamos meros consumidores. O underground liberta, esclarece, cria algo a partir do nada. Isso é o poder da criação genuína e estamos aqui para lutar para que todos nós tenhamos esse direito preservado. Mas nada disso é feito sem união, sem a força do coletivo, sem a luta do grupo.
+                    </p>
+                    
+                    <p>
+                        Mais do que respeitar a diversidade, abraçamos todas as culturas que fomentam a cena do underground da nossa região. Somos em nossa maioria músicos, mas também ilustradores, comerciantes, prestadores de serviço e artistas dos mais diferentes tipos que fazem da cena algo real e tangível. É um universo multifacetado, composto por diferentes gêneros, histórias e competências, e por isso mesmo somos fortes.
+                    </p>
+                    
+                    <p>
+                        Por isso, abraçamos e respeitamos a diversidade como um princípio básico deste grupo.
+                    </p>
+                </div>
+            </section>
+        </main>
     </div>
-  );
-}
 
-// Custom Sparkles Icon fixado (com height e width travados)
-function Sparkles({ size = 24, className = "", ...props }) {
-  return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-      {...props}
-    >
-      <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
-    </svg>
-  );
-}
+</body>
+</html>
