@@ -17,61 +17,80 @@ export default function Manifesto() {
         </h1>
       </div>
 
-      {/* Introdução */}
-      <section className="mb-12 bg-[#121212] border border-[#1e1e1e] p-6 md:p-8 rounded-xl leading-relaxed text-lg">
-        <p className="mb-4">
-          Na contramão da pasteurização global, artistas e produtores do centro-oeste paulista decidiram se unificar em um movimento colaborativo de resistência e valorização da cena local.
+      {/* Introdução / Manifesto Principal na Íntegra */}
+      <section className="mb-12 bg-[#121212] border border-[#1e1e1e] p-6 md:p-8 rounded-xl leading-relaxed text-[15px] sm:text-base space-y-4">
+        <p className="font-bold text-lg text-white mb-2">DO IT OURSELVES!</p>
+        <p>
+          O underground é a fonte de toda cultura e inovação que existe no mundo. Sem o underground, não existe mainstream.
         </p>
-        <p className="mb-4">
-          Em uma época dominada pela hiperglobalização, algoritmos ditando o que devemos consumir e o esvaziamento dos espaços presenciais, a cena cultural autônoma do DDD 014 (Bauru, Agudos, Marília, Botucatu, Jaú e região) construiu a sua própria resposta.
+        <p>
+          São os artistas, a cena e a rede de contatos que não só fomentam a verdadeira inovação cultural, como também são a fonte de uma economia gigante que passa despercebida dos grandes holofotes.
         </p>
-        <p className="text-white font-bold text-xl mt-6 border-l-4 border-[#a8f776] pl-4">
-          Esqueça o "Do It Yourself" (Faça Você Mesmo). O nosso lema é o DO IT OURSELVES (Façamos Nós Mesmos).
+        <p>
+          Nós geramos ideias, movimentamos o mercado de trabalho e, com nossas criações, geramos valor econômico e cultural. Somos a história e somos a cultura que vibra e reflete o nosso mundo.
+        </p>
+        <p>
+          O Underground 014 surge como uma resposta a um mundo massificado que impõe formas predeterminadas de consumir cultura, que quase nunca refletem os interesses daqueles que a consomem. Somos forçados por algoritmos e plataformas a consumir aquilo que é do interesse de grupos e empresas com capital infinito, mas que, no final, só existem porque NÓS existimos, porque nós insistimos. 
+        </p>
+        <p>
+          O Underground é um ato de resistência, de organização coletiva e também de educação e preservação da nossa história e modos de vida. Sem o underground nos tornamos meros consumidores. O underground liberta, esclarece, cria algo a partir do nada. Isso é o poder da criação genuína e estamos aqui para lutar para que todos nós tenhamos esse direito preservado. Mas nada disso é feito sem união, sem a força do coletivo, sem a luta do grupo.
+        </p>
+        <p>
+          Mais do que respeitar a diversidade, abraçamos todas as culturas que fomentam a cena do underground da nossa região. Somos em nossa maioria músicos, mas também ilustradores, comerciantes, prestadores de serviço e artistas dos mais diferentes tipos que fazem da cena algo real e tangível. É um universo multifacetado, composto por diferentes gêneros, histórias e competências, e por isso mesmo somos fortes.
+        </p>
+        <p>
+          Por isso, abraçamos e respeitamos a diversidade como um princípio básico deste grupo.
+        </p>
+        <p>
+          Todos são bem-vindos, não há líderes e não há seguidores. Esse espaço é de todos, de forma autônoma, mas sob a responsabilidade de cada um.
+        </p>
+        <p>
+          O underground nunca morre, mas cabe a nós lutar por uma vida próspera e rica.
         </p>
       </section>
 
       {/* O Que Somos e O Que Não Somos */}
       <div className="grid md:grid-cols-2 gap-6 mb-12">
-        {/* O que NÃO somos */}
-        <div className="bg-[#1a1010] border border-red-900/30 p-6 rounded-xl">
-          <div className="flex items-center gap-2 mb-4 text-red-400">
-            <ShieldAlert size={24} />
-            <h2 className="text-xl font-black uppercase tracking-wide">O que NÃO somos</h2>
-          </div>
-          <ul className="space-y-4 text-sm md:text-base text-[#b0b0b0]">
-            <li className="flex items-start gap-2">
-              <span className="text-red-500 mt-1">✖</span>
-              <span><strong>Não somos uma agência de shows:</strong> O portal não é um "Job Center". Não estamos aqui para arrumar gigs ou agenciar a sua banda. O corre ainda é seu, nós apenas fornecemos as ferramentas e a rede de contatos.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-red-500 mt-1">✖</span>
-              <span><strong>Não somos uma "panelinha":</strong> Nosso objetivo não é fechar um círculo de amigos. Queremos expansão, braços abertos para quem chegar com respeito e vontade de somar.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-red-500 mt-1">✖</span>
-              <span><strong>Não somos um balcão de negócios:</strong> Não vamos retirar a autonomia de ninguém para trancar artistas em modelos fechados de contrato ou cobrar porcentagens.</span>
-            </li>
-          </ul>
-        </div>
-
         {/* O que SOMOS */}
-        <div className="bg-[#101a12] border border-[#2e7d15]/30 p-6 rounded-xl">
+        <div className="bg-[#101a12] border border-[#2e7d15]/30 p-6 rounded-xl flex flex-col">
           <div className="flex items-center gap-2 mb-4 text-[#a8f776]">
             <Users size={24} />
             <h2 className="text-xl font-black uppercase tracking-wide">O que SOMOS</h2>
           </div>
-          <ul className="space-y-4 text-sm md:text-base text-[#b0b0b0]">
+          <ul className="space-y-4 text-sm md:text-base text-[#b0b0b0] flex-1">
             <li className="flex items-start gap-2">
-              <span className="text-[#a8f776] mt-1">✔</span>
-              <span><strong>Uma ferramenta de concientização e união:</strong> Uma rede criada de forma orgânica e coletiva, onde dezenas de pessoas debatem diariamente para fomentar a região.</span>
+              <span className="text-[#a8f776] mt-1 shrink-0">✔</span>
+              <span><strong>Uma ferramenta de conscientização e união:</strong> Uma rede criada de forma orgânica e coletiva, onde dezenas de pessoas debatem diariamente para fomentar a região.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-[#a8f776] mt-1">✔</span>
+              <span className="text-[#a8f776] mt-1 shrink-0">✔</span>
               <span><strong>Um facilitador de intercâmbio:</strong> Conectamos Bauru, Jaú, Botucatu, Marília e toda a região para que as bandas circulem e compartilhem públicos, equipamentos e palcos.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-[#a8f776] mt-1">✔</span>
+              <span className="text-[#a8f776] mt-1 shrink-0">✔</span>
               <span><strong>Totalmente gratuitos e abertos:</strong> O projeto não tem amarras, não tem dono central, não tem cobrança. No Slaves, No Masters!</span>
+            </li>
+          </ul>
+        </div>
+
+        {/* O que NÃO somos */}
+        <div className="bg-[#1a1010] border border-red-900/30 p-6 rounded-xl flex flex-col">
+          <div className="flex items-center gap-2 mb-4 text-red-400">
+            <ShieldAlert size={24} />
+            <h2 className="text-xl font-black uppercase tracking-wide">O que NÃO somos</h2>
+          </div>
+          <ul className="space-y-4 text-sm md:text-base text-[#b0b0b0] flex-1">
+            <li className="flex items-start gap-2">
+              <span className="text-red-500 mt-1 shrink-0">✖</span>
+              <span><strong>Não somos uma agência de shows:</strong> O portal não é um "Job Center". Não estamos aqui para arrumar gigs ou agenciar a sua banda. O corre ainda é seu, nós apenas fornecemos as ferramentas e a rede de contatos.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-red-500 mt-1 shrink-0">✖</span>
+              <span><strong>Não somos uma "panelinha":</strong> Nosso objetivo não é fechar um círculo de amigos. Queremos expansão, braços abertos para quem chegar com respeito e vontade de somar.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-red-500 mt-1 shrink-0">✖</span>
+              <span><strong>Não somos um balcão de negócios:</strong> Não vamos retirar a autonomia de ninguém para trancar artistas em modelos fechados de contrato ou cobrar porcentagens.</span>
             </li>
           </ul>
         </div>
@@ -122,17 +141,29 @@ export default function Manifesto() {
       {/* Encerramento */}
       <div className="text-center mt-16 pb-8 border-t border-[#222] pt-8">
         <p className="text-[#808080] font-medium tracking-wider uppercase text-sm mb-2">Juntos somos mais fortes.</p>
-        <p className="text-[#a8f776] font-black text-xl">DIY OR DIE. DO IT OURSELVES.</p>
+        <p className="text-[#a8f776] font-black text-2xl md:text-3xl">DIY OR DIE. DO IT OURSELVES.</p>
       </div>
     </div>
   );
 }
 
-// Icon fallbacks (Sparkles não estava importado no padrão)
-function Sparkles(props) {
+// Custom Sparkles Icon fixado (com height e width travados)
+function Sparkles({ size = 24, className = "", ...props }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinelinejoin="round" {...props}>
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      width={size} 
+      height={size} 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={className}
+      {...props}
+    >
       <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
     </svg>
-  )
+  );
 }
