@@ -1,0 +1,235 @@
+#!/bin/bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BACKUP_DIR="${SCRIPT_DIR}/.backups"
+BACKUP_FILE="${BACKUP_DIR}/db-dump-$(date +%Y%m%d_%H%M%S).sql"
+
+# Local Supabase dev config (via `supabase start`)
+# Default port 54322 matches Supabase local development from supabase/config.toml
+LOCAL_DB_HOST="${LOCAL_DB_HOST:-localhost}"
+LOCAL_DB_PORT="${LOCAL_DB_PORT:-54322}"
+LOCAL_DB_USER="${LOCAL_DB_USER:-postgres}"
+LOCAL_DB_PASSWORD="${LOCAL_DB_PASSWORD:-postgres}"
+LOCAL_DB_NAME="${LOCAL_DB_NAME:-postgres}"
+
+# Docker container running local Supabase postgres (fallback when host has no psql)
+LOCAL_DB_CONTAINER="${LOCAL_DB_CONTAINER:-supabase_db_underground014.com.br}"
+
+# auth.* tables that must NOT be touched by backup/restore: schema_migrations is
+# GoTrue's own migration bookkeeping, instances is its single config row. Wiping
+# either breaks the local auth service, not just its data.
+AUTH_PRESERVE_TABLES=(schema_migrations instances)
+
+psql_local() {
+  if command -v psql &> /dev/null; then
+    PGPASSWORD="${LOCAL_DB_PASSWORD}" psql \
+      -q \
+      -h "${LOCAL_DB_HOST}" \
+      -p "${LOCAL_DB_PORT}" \
+      -U "${LOCAL_DB_USER}" \
+      -d "${LOCAL_DB_NAME}" \
+      "$@"
+  else
+    docker exec -i \
+      -e PGPASSWORD="${LOCAL_DB_PASSWORD}" \
+      "${LOCAL_DB_CONTAINER}" \
+      psql -q -U "${LOCAL_DB_USER}" -d "${LOCAL_DB_NAME}" "$@"
+  fi
+}
+
+usage() {
+  cat <<EOF
+Usage: $0 [sync|backup|restore|restore-latest]
+
+Commands:
+  (default)       Backup from Supabase cloud and restore locally (sync)
+  sync            Complete backup and restore cycle
+  backup          Export schema and data from Supabase cloud
+  restore FILE    Import SQL dump into local Supabase dev environment
+  restore-latest  Import most recent backup into local Supabase dev environment
+
+Prerequisites:
+  - Supabase CLI linked to project (via supabase/config.toml)
+  - Local Supabase running: supabase start
+  - psql installed locally (postgresql-client)
+
+Environment variables:
+  LOCAL_DB_HOST       Local postgres host (default: localhost)
+  LOCAL_DB_PORT       Local postgres port (default: 5432)
+  LOCAL_DB_USER       Postgres user (default: postgres)
+  LOCAL_DB_PASSWORD   Postgres password (default: postgres)
+  LOCAL_DB_NAME       Database name (default: postgres)
+
+Examples:
+  supabase start                  # Start local Supabase
+  $0                              # Backup cloud and restore locally
+  $0 backup
+  $0 restore /path/to/dump.sql
+  $0 restore-latest
+EOF
+  exit 1
+}
+
+ensure_backup_dir() {
+  mkdir -p "${BACKUP_DIR}"
+}
+
+check_supabase_cli() {
+  if ! command -v supabase &> /dev/null; then
+    echo "Error: Supabase CLI not found"
+    echo "Install via: npm install -g @supabase/cli"
+    exit 1
+  fi
+}
+
+check_local_postgres() {
+  if ! psql_local -c "SELECT 1" > /dev/null 2>&1; then
+    echo "Error: Cannot connect to local postgres at ${LOCAL_DB_HOST}:${LOCAL_DB_PORT}"
+    echo "Start with: supabase start"
+    exit 1
+  fi
+}
+
+reset_local_schema() {
+  echo "Resetting local 'public' schema..."
+  psql_local -v ON_ERROR_STOP=1 <<'SQL'
+DROP SCHEMA IF EXISTS public CASCADE;
+CREATE SCHEMA public;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO public;
+SQL
+}
+
+clear_local_auth_data() {
+  echo "Clearing local 'auth' data (preserving schema + GoTrue bookkeeping)..."
+  local tables
+  tables=$(psql_local -Atc "
+    select string_agg(quote_ident('auth') || '.' || quote_ident(tablename), ', ')
+    from pg_tables
+    where schemaname = 'auth'
+      and tablename not in ($(printf "'%s'," "${AUTH_PRESERVE_TABLES[@]}" | sed 's/,$//'))
+  ")
+  if [ -n "${tables}" ]; then
+    psql_local -v ON_ERROR_STOP=1 -c "TRUNCATE ${tables} CASCADE;"
+  fi
+}
+
+backup() {
+  check_supabase_cli
+  ensure_backup_dir
+
+  local schema_file="${BACKUP_FILE%.sql}.schema.sql"
+  local data_file="${BACKUP_FILE%.sql}.data.sql"
+  local auth_data_file="${BACKUP_FILE%.sql}.auth-data.sql"
+  local auth_exclude
+  auth_exclude=$(printf 'auth.%s,' "${AUTH_PRESERVE_TABLES[@]}" | sed 's/,$//')
+
+  echo "Backing up Supabase schema+data to ${BACKUP_FILE}..."
+
+  if ! (cd "${SCRIPT_DIR}" && supabase db dump --linked --schema public -f "${schema_file}"); then
+    echo "✗ Schema backup failed"
+    exit 1
+  fi
+
+  if ! (cd "${SCRIPT_DIR}" && supabase db dump --linked --schema public --data-only --use-copy -f "${data_file}"); then
+    echo "✗ Data backup failed"
+    exit 1
+  fi
+
+  # auth data only -- never its schema (GoTrue owns those migrations), and never
+  # schema_migrations/instances (see AUTH_PRESERVE_TABLES). Contains password
+  # hashes, OAuth tokens, and session data -- treat this file as a secret.
+  if ! (cd "${SCRIPT_DIR}" && supabase db dump --linked --schema auth --data-only --use-copy \
+      --exclude "${auth_exclude}" -f "${auth_data_file}"); then
+    echo "✗ Auth data backup failed"
+    exit 1
+  fi
+
+  cat "${schema_file}" "${data_file}" "${auth_data_file}" > "${BACKUP_FILE}"
+  rm -f "${schema_file}" "${data_file}" "${auth_data_file}"
+
+  echo "✓ Backup successful: ${BACKUP_FILE}"
+  echo "  Contains real auth data (password hashes, OAuth tokens) -- never share or commit this file."
+}
+
+restore() {
+  local dump_file="$1"
+
+  if [ ! -f "${dump_file}" ]; then
+    echo "Error: File not found: ${dump_file}"
+    exit 1
+  fi
+
+  check_local_postgres
+  ensure_backup_dir
+  reset_local_schema
+  clear_local_auth_data
+
+  echo "Restoring from ${dump_file} into local Supabase..."
+
+  if psql_local -v ON_ERROR_STOP=1 < "${dump_file}"; then
+    echo "✓ Restore successful"
+  else
+    echo "✗ Restore failed"
+    exit 1
+  fi
+}
+
+restore_latest() {
+  ensure_backup_dir
+
+  local latest_backup
+  latest_backup=$(find "${BACKUP_DIR}" -name "db-dump-*.sql" -type f -printf '%T@ %p\n' | sort -rn | head -1 | cut -d' ' -f2-)
+
+  if [ -z "${latest_backup}" ]; then
+    echo "Error: No backup files found in ${BACKUP_DIR}"
+    exit 1
+  fi
+
+  echo "Using latest backup: ${latest_backup}"
+  restore "${latest_backup}"
+}
+
+sync() {
+  echo "=== Starting database sync ==="
+  echo "Step 1: Backup from Supabase"
+  backup
+
+  echo ""
+  echo "Step 2: Restore to local Docker postgres"
+  restore_latest
+
+  echo ""
+  echo "✓ Database sync complete"
+}
+
+main() {
+  local cmd="${1:-sync}"
+
+  case "$cmd" in
+    sync)
+      sync
+      ;;
+    backup)
+      backup
+      ;;
+    restore)
+      if [ $# -lt 2 ]; then
+        echo "Error: restore requires a file argument"
+        usage
+      fi
+      restore "$2"
+      ;;
+    restore-latest)
+      restore_latest
+      ;;
+    *)
+      echo "Unknown command: $cmd"
+      usage
+      ;;
+  esac
+}
+
+main "$@"

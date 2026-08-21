@@ -2,10 +2,11 @@ import React, { useState, useRef } from "react";
 import { Trash2, ChevronRight, Reply, Send, ImageIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/supabase";
 import HeatFlames from "@/components/HeatFlames";
 import { collectThreadDates, computeHeat } from "@/lib/threadHeat";
+import { formatUrl } from "@/lib/supabaseStorage";
 
 function Avatar({ name }) {
   return (
@@ -18,15 +19,6 @@ function Avatar({ name }) {
 function timeStr(d) {
   return new Date(d).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
-
-const formatUrl = (url) => {
-  if (!url) return "";
-  let cleaned = String(url).replace("https://tgxzkvhqzyxjt.supabase.co", "https://otbjufhtgxzkvhqzyxjt.supabase.co");
-  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
-    return `https://otbjufhtgxzkvhqzyxjt.supabase.co/storage/v1/object/public/underground-images/${cleaned}`;
-  }
-  return cleaned;
-};
 
 const processAndUploadImage = async (file) => {
   if (!file) return null;
@@ -81,7 +73,7 @@ const processAndUploadImage = async (file) => {
   });
 };
 
-export default function ThreadNode({ node, childrenMap, user, onReply, onDelete, depth = 0 }) {
+export default function ThreadNode({ node, childrenMap, user, isAdmin, onReply, onDelete, depth = 0 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [composing, setComposing] = useState(false);
   const [text, setText] = useState("");
@@ -95,7 +87,7 @@ export default function ThreadNode({ node, childrenMap, user, onReply, onDelete,
   const [lightboxImage, setLightboxImage] = useState("");
 
   const children = (childrenMap[node.id] || []).slice().sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-  const canDelete = user && (user.id === node.created_by_id || user.role === "admin");
+  const canDelete = user && (user.id === node.created_by_id || isAdmin);
   const isTopic = depth === 0;
   const heat = isTopic ? computeHeat(collectThreadDates(childrenMap, node.id, node.created_date)) : 0;
 
@@ -225,7 +217,7 @@ export default function ThreadNode({ node, childrenMap, user, onReply, onDelete,
       {!collapsed && children.length > 0 && (
         <div className="mt-2 space-y-2">
           {children.map((child) => (
-            <ThreadNode key={child.id} node={child} childrenMap={childrenMap} user={user} onReply={onReply} onDelete={onDelete} depth={depth + 1} />
+            <ThreadNode key={child.id} node={child} childrenMap={childrenMap} user={user} isAdmin={isAdmin} onReply={onReply} onDelete={onDelete} depth={depth + 1} />
           ))}
         </div>
       )}
@@ -233,6 +225,7 @@ export default function ThreadNode({ node, childrenMap, user, onReply, onDelete,
       {/* Lightbox do Node */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
         <DialogContent className="max-w-4xl bg-transparent border-none shadow-none flex justify-center items-center p-0">
+          <DialogTitle className="sr-only">Imagem expandida do tópico</DialogTitle>
           {lightboxImage && (
             <img src={formatUrl(lightboxImage)} alt="Expandida" className="max-w-full max-h-[85vh] object-contain rounded-md" />
           )}

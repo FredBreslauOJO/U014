@@ -1,20 +1,13 @@
 import React from "react";
 import { CalendarDays, MapPin, Clock, Ticket, Share2, Pencil, Trash2, ChevronDown, ChevronUp, Music2, ExternalLink, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatUrl } from "@/lib/supabaseStorage";
 import { getDateInLocalTimezone } from "@/lib/date";
-
-const formatUrl = (url) => {
-  if (!url) return "";
-  let cleaned = String(url).replace("https://tgxzkvhqzyxjt.supabase.co", "https://otbjufhtgxzkvhqzyxjt.supabase.co");
-  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
-    return `https://otbjufhtgxzkvhqzyxjt.supabase.co/storage/v1/object/public/underground-images/${cleaned}`;
-  }
-  return cleaned;
-};
 
 export default function ShowCard({
   show,
   user,
+  isAdmin,
   expanded,
   onToggle,
   onEdit,
@@ -23,11 +16,7 @@ export default function ShowCard({
   isCopied,
 }) {
   // O criador do evento ou admin pode EDITAR A QUALQUER MOMENTO (Sem limite de tempo!)
-  const canEdit =
-    user &&
-    (show.created_by_id === user.id ||
-      user.role === "admin" ||
-      user.user_metadata?.role === "admin");
+  const canEdit = user && (show.created_by_id === user.id || isAdmin);
 
   const formattedDate = getDateInLocalTimezone(show.date).toLocaleDateString("pt-BR", {
     weekday: "short",

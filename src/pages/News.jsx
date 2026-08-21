@@ -8,15 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-
-const formatUrl = (url) => {
-  if (!url) return "";
-  let cleaned = String(url).replace("https://tgxzkvhqzyxjt.supabase.co", "https://otbjufhtgxzkvhqzyxjt.supabase.co");
-  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
-    return `https://otbjufhtgxzkvhqzyxjt.supabase.co/storage/v1/object/public/underground-images/${cleaned}`;
-  }
-  return cleaned;
-};
+import { formatUrl } from "@/lib/supabaseStorage";
 
 // Compressão Agressiva via Canvas (WebP, Max 1000px)
 const processAndUploadImage = async (file) => {
@@ -123,7 +115,7 @@ export default function News() {
 
   const removeNews = async (id, e) => {
     e.stopPropagation();
-    await supabase.from('news').delete().eq('id', id);
+    await supabase.from('news').update({ status: 'disabled' }).eq('id', id);
     setNews(news.filter((n) => n.id !== id));
   };
 
