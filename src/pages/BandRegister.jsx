@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2, Music2, Upload, Save, ArrowLeft, UserPlus, Star, Pencil, Youtube, Play } from "lucide-react";
+import { Plus, Trash2, Music2, Upload, Save, ArrowLeft, UserPlus, Star, Pencil, Youtube, Play, Settings2 } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ const emptyForm = () => ({
   name: "", bio: "", genres: [], performance_type: "ambos", city: "",
   whatsapp: "", email: "", instagram: "", youtube: "", facebook: "", members: "",
   logo_url: "", photo_url: "", gallery: [], links: [], collaborator_emails: [], videos: [],
+  // Novos campos pro PDF/Rider
+  show_duration: "", repertoire: "", stage_plot_url: "", tech_requirements: [], tech_crew: "", tech_observations: "",
 });
 
 const getYouTubeId = (url) => {
@@ -38,6 +40,7 @@ export default function BandRegister() {
   const [tracks, setTracks] = useState([]);
   const [newTrack, setNewTrack] = useState({ title: "", url: "", source: "youtube" });
   const [newVideo, setNewVideo] = useState({ title: "", url: "" });
+  const [newTechReq, setNewTechReq] = useState({ item: "", provider: "Próprio" });
   const [genreSuggestions, setGenreSuggestions] = useState(GENRES);
   const [form, setForm] = useState(emptyForm());
 
@@ -86,7 +89,8 @@ export default function BandRegister() {
       links: b.links || [], 
       videos: b.videos || [],
       genres: b.genres || (b.genre ? [b.genre] : []), 
-      collaborator_emails: b.collaborator_emails || [] 
+      collaborator_emails: b.collaborator_emails || [],
+      tech_requirements: b.tech_requirements || [],
     });
     try {
       const { data: t } = await supabase.from("tracks").select("*").eq("band_id", b.id);
@@ -105,7 +109,7 @@ export default function BandRegister() {
   const uploadFile = async (file, field) => {
     try {
       toast({ title: "Otimizando e enviando imagem..." });
-      const fileUrl = await uploadImage(file, "bands");
+      const fileUrl = await uploadImage(file, field === "stage_plot_url" ? "rider" : "bands");
       set(field, fileUrl);
       toast({ title: "Upload concluído!" });
     } catch (e) {
@@ -154,6 +158,19 @@ export default function BandRegister() {
 
   const removeVideo = (index) => {
     setForm((f) => ({ ...f, videos: (f.videos || []).filter((_, i) => i !== index) }));
+  };
+
+  const addTechReq = () => {
+    if (!newTechReq.item.trim()) {
+      toast({ title: "Informe o nome do equipamento", variant: "destructive" });
+      return;
+    }
+    setForm((f) => ({ ...f, tech_requirements: [...(f.tech_requirements || []), { ...newTechReq }] }));
+    setNewTechReq({ item: "", provider: "Próprio" });
+  };
+
+  const removeTechReq = (index) => {
+    setForm((f) => ({ ...f, tech_requirements: (f.tech_requirements || []).filter((_, i) => i !== index) }));
   };
 
   const save = async () => {
@@ -261,7 +278,8 @@ export default function BandRegister() {
       <h1 className="text-3xl font-black text-white mb-1">{editingBand ? "Editar banda" : "Cadastrar banda"}</h1>
       <p className="text-[#808080] text-sm mb-6">Gerencie a página da sua banda — bio, vídeos, mídias e contatos.</p>
 
-      <div className="space-y-6">
+      <div className="space-y-6 pb-24">
+        {/* IDENTIDADE */}
         <section className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-5 space-y-4">
           <h2 className="text-sm font-bold text-[#a8f776] uppercase tracking-wider">Identidade</h2>
           <div className="grid sm:grid-cols-2 gap-4">
@@ -344,13 +362,14 @@ export default function BandRegister() {
           </div>
         </section>
 
+        {/* IMAGENS */}
         <section className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-5 space-y-4">
           <h2 className="text-sm font-bold text-[#a8f776] uppercase tracking-wider">Imagens</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <Label className="text-[#b0b0b0]">Logo</Label>
               <div className="flex items-center gap-3 mt-1">
-                {form.logo_url && <img src={form.logo_url} alt="" className="w-16 h-16 rounded object-cover" />}
+                {form.logo_url && <img src={form.logo_url} alt="" className="w-16 h-16 rounded object-cover bg-white" />}
                 <label className="cursor-pointer">
                   <span className="inline-flex items-center gap-2 bg-[#1a1a1a] hover:bg-[#222] text-white text-sm px-3 py-2 rounded-md"><Upload size={14} /> Enviar</span>
                   <input type="file" className="hidden" accept="image/*" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], "logo_url")} />
@@ -358,7 +377,7 @@ export default function BandRegister() {
               </div>
             </div>
             <div>
-              <Label className="text-[#b0b0b0]">Foto da banda</Label>
+              <Label className="text-[#b0b0b0]">Foto Hero (Imagem Larga pro Press Kit)</Label>
               <div className="flex items-center gap-3 mt-1">
                 {form.photo_url && <img src={form.photo_url} alt="" className="w-16 h-16 rounded object-cover" />}
                 <label className="cursor-pointer">
@@ -370,6 +389,7 @@ export default function BandRegister() {
           </div>
         </section>
 
+        {/* GALERIA */}
         <section className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-5 space-y-4">
           <h2 className="text-sm font-bold text-[#a8f776] uppercase tracking-wider">Galeria de fotos</h2>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -386,6 +406,7 @@ export default function BandRegister() {
           </div>
         </section>
 
+        {/* CONTATO */}
         <section className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-5 space-y-4">
           <h2 className="text-sm font-bold text-[#a8f776] uppercase tracking-wider">Contato</h2>
           <div className="grid sm:grid-cols-2 gap-4">
@@ -397,6 +418,92 @@ export default function BandRegister() {
           </div>
         </section>
 
+        {/* ESPECIFICAÇÕES TÉCNICAS E RIDER */}
+        <section className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Settings2 size={18} className="text-[#a8f776]" />
+            <h2 className="text-sm font-bold text-[#a8f776] uppercase tracking-wider">Especificações Técnicas & Rider <span className="text-white normal-case font-normal">(Para o Press Kit)</span></h2>
+          </div>
+          
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-[#b0b0b0]">Duração do Show (Aprox.)</Label>
+              <Input value={form.show_duration || ""} onChange={(e) => set("show_duration", e.target.value)} placeholder="Ex: 90 minutos" className="bg-[#0a0a0a] border-[#222] text-white" />
+            </div>
+          </div>
+          
+          <div>
+            <Label className="text-[#b0b0b0]">Repertório (Opcional)</Label>
+            <Textarea value={form.repertoire || ""} onChange={(e) => set("repertoire", e.target.value)} rows={3} className="bg-[#0a0a0a] border-[#222] text-white" placeholder="Nomes das músicas ou referências de cover..." />
+          </div>
+
+          <div className="border-t border-[#1e1e1e] pt-4 mt-4">
+            <Label className="text-[#b0b0b0] text-sm block mb-1">Mapa de Palco (Stage Plot)</Label>
+            <p className="text-xs text-[#707070] mb-3">
+              Crie seu mapa de palco em sites como o <a href="https://ridermaker.com/" target="_blank" rel="noreferrer" className="text-[#a8f776] hover:underline">RiderMaker</a>, exporte a imagem/PDF como imagem e suba aqui.
+            </p>
+            <div className="flex items-center gap-3">
+              {form.stage_plot_url && <img src={form.stage_plot_url} alt="Stage Plot" className="h-16 rounded object-contain bg-white px-2" />}
+              <label className="cursor-pointer">
+                <span className="inline-flex items-center gap-2 bg-[#1a1a1a] hover:bg-[#222] text-white text-sm px-3 py-2 rounded-md transition-colors"><Upload size={14} /> {form.stage_plot_url ? "Alterar Mapa" : "Enviar Mapa"}</span>
+                <input type="file" className="hidden" accept="image/*" onChange={(e) => e.target.files[0] && uploadFile(e.target.files[0], "stage_plot_url")} />
+              </label>
+            </div>
+          </div>
+
+          <div className="border-t border-[#1e1e1e] pt-4 mt-4">
+            <Label className="text-[#b0b0b0] text-sm block mb-2">Descritivo Técnico (Input List / Backline)</Label>
+            <div className="flex flex-col sm:flex-row gap-2 mb-3">
+              <Input 
+                value={newTechReq.item} 
+                onChange={(e) => setNewTechReq({ ...newTechReq, item: e.target.value })} 
+                placeholder="Ex: Microfone SM58, Amplificador 100w..." 
+                className="bg-[#0a0a0a] border-[#222] text-white flex-1" 
+              />
+              <div className="flex gap-2 shrink-0">
+                <select 
+                  value={newTechReq.provider} 
+                  onChange={(e) => setNewTechReq({ ...newTechReq, provider: e.target.value })} 
+                  className="bg-[#0a0a0a] border border-[#222] text-white rounded-md px-3 text-sm h-10 focus:outline-none focus:border-[#a8f776]"
+                >
+                  <option value="Próprio">Próprio</option>
+                  <option value="Contratante">Contratante</option>
+                </select>
+                <Button onClick={addTechReq} type="button" className="bg-[#a8f776] text-black hover:bg-[#8fd862] px-3"><Plus size={16} /></Button>
+              </div>
+            </div>
+            
+            <div className="space-y-1.5">
+              {(form.tech_requirements || []).map((req, i) => (
+                <div key={i} className="flex items-center justify-between bg-[#1a1a1a] border border-[#222] p-2.5 rounded-md text-sm text-white group">
+                  <div>
+                    <span className="font-mono text-[#a8f776] mr-2">{i + 1}.</span> 
+                    <span>{req.item}</span> 
+                    <span className="text-[#808080] text-xs ml-2 uppercase">({req.provider})</span>
+                  </div>
+                  <button type="button" onClick={() => removeTechReq(i)} className="text-[#505050] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+              {(!form.tech_requirements || form.tech_requirements.length === 0) && (
+                <p className="text-xs text-[#505050]">Nenhum item adicionado.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="border-t border-[#1e1e1e] pt-4 mt-4">
+            <Label className="text-[#b0b0b0]">Equipe Técnica</Label>
+            <Textarea value={form.tech_crew || ""} onChange={(e) => set("tech_crew", e.target.value)} rows={2} className="bg-[#0a0a0a] border-[#222] text-white" placeholder="Nomes e funções. Ex: João (Técnico de Som), Maria (Iluminadora)..." />
+          </div>
+
+          <div>
+            <Label className="text-[#b0b0b0]">Observações e Exigências Extras</Label>
+            <Textarea value={form.tech_observations || ""} onChange={(e) => set("tech_observations", e.target.value)} rows={2} className="bg-[#0a0a0a] border-[#222] text-white" placeholder="Ex: Precisamos de palco de no mínimo X metros, cabos específicos, espaço para merchandising..." />
+          </div>
+        </section>
+
+        {/* PLAYLIST */}
         {editingBand && (
           <section className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-5 space-y-4">
             <div className="flex items-center gap-2">
@@ -430,15 +537,16 @@ export default function BandRegister() {
           </section>
         )}
 
-        <div className="flex gap-3 sticky bottom-4">
+        {/* BARRA DE BOTÕES INFERIOR */}
+        <div className="fixed bottom-0 left-0 md:left-[240px] right-0 bg-[#0e0e0e] border-t border-[#1a1a1a] p-4 flex gap-3 z-50 px-4 md:px-8 max-w-[900px] mx-auto md:bg-transparent md:border-t-0 md:static md:p-0 md:mt-6">
           <Button onClick={save} disabled={saving} className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold">
             <Save size={16} className="mr-1" /> {saving ? "Salvando..." : editingBand ? "Salvar alterações" : "Cadastrar banda"}
           </Button>
-          <Button onClick={() => setView("list")} variant="outline" className="border-[#333] text-white">Voltar</Button>
+          <Button onClick={() => setView("list")} variant="outline" className="border-[#333] text-white bg-[#121212] hover:bg-[#1a1a1a]">Voltar</Button>
           {editingBand && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-500/10 ml-auto">
+                <Button variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-500/10 ml-auto bg-[#121212] md:bg-transparent">
                   <Trash2 size={16} className="mr-1" /> Excluir banda
                 </Button>
               </AlertDialogTrigger>
