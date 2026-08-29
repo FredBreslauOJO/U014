@@ -1,19 +1,34 @@
 import { jsPDF } from "jspdf";
 import { formatUrl } from "@/lib/supabaseStorage";
 
-// Função auxiliar para carregar imagens e evitar distorção
-const loadImage = (url) => {
+// Função blindada para converter imagem em Base64 antes de injetar no PDF
+const getImageData = (url) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "Anonymous";
-    img.onload = () => resolve(img);
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      
+      const isPng = url.toLowerCase().includes(".png");
+      const format = isPng ? "image/png" : "image/jpeg";
+      
+      resolve({
+        dataUrl: canvas.toDataURL(format),
+        width: img.width,
+        height: img.height,
+        format: isPng ? "PNG" : "JPEG"
+      });
+    };
     img.onerror = (e) => reject(e);
     img.src = url;
   });
 };
 
 export async function generatePressKitPDF(band) {
-  // Cria um documento A4 (210x297mm)
   const doc = new jsPDF({ format: "a4", unit: "mm" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -25,74 +40,82 @@ export async function generatePressKitPDF(band) {
   // --- PÁGINA 1: INFORMAÇÕES E BIO ---
   
   // 1. Hero Image (topo)
-  if (band.hero_url) {
+  if (band.photo_url) {
     try {
-      const heroImg = await loadImage(formatUrl(band.hero_url));
-      // Calcula proporção para não esticar (altura máxima de 70mm)
+      const heroImg = await getImageData(formatUrl(band.photo_url));
       const imgRatio = heroImg.width / heroImg.height;
       let printHeight = contentWidth / imgRatio;
-      if (printHeight > 70) printHeight = 70; 
+      if (printHeight > 70) printHeight = 70; // Limite de altura
       
-      doc.addImage(heroImg, "JPEG", margin, currentY, contentWidth, printHeight);
+      doc.addImage(heroImg.dataUrl, heroImg.format, margin, currentY, contentWidth, printHeight);
       currentY += printHeight + 15;
     } catch (e) {
-      console.warn("Erro ao carregar hero image pro PDF");
+      console.warn("Erro ao carregar hero image.");
     }
   }
 
-  // 2. Logo e Título
+  // 2. Logo
   if (band.logo_url) {
     try {
-      const logoImg = await loadImage(formatUrl(band.logo_url));
-      doc.addImage(logoImg, "PNG", margin, currentY, 25, 25);
-    } catch (e) {}
+      const logoImg = await getImageData(formatUrl(band.logo_url));
+      const logoSize = 30;
+      doc.addImage(logoImg.dataUrl, logoImg.format, (pageWidth - logoSize) / 2, currentY - (logoSize / 2), logoSize, logoSize);
+      currentY += (logoSize / 2) + 10;
+    } catch (e) {
+      console.warn("Erro ao carregar logo.");
+    }
   }
 
-  const textX = band.logo_url ? margin + 30 : margin;
-  let titleY = currentY + 10;
-  
+  // 3. Título e Contato (Centralizados)
   doc.setFont("helvetica", "bold");
   doc.setFontSize(24);
-  doc.text(band.name.toUpperCase(), textX, titleY);
-  
+  const title = band.name.toUpperCase();
+  doc.text(title, pageWidth / 2, currentY, { align: "center" });
+  currentY += 6;
+
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text((band.genre || "Gênero não informado").toUpperCase(), textX, titleY + 6);
-  
+  const genre = (band.genre || "Gênero não informado").toUpperCase();
+  doc.text(genre, pageWidth / 2, currentY, { align: "center" });
+  currentY += 6;
+
   doc.setFontSize(9);
-  doc.text([
-    `${band.city || ""}`,
-    band.contact_email ? `Email: ${band.contact_email}` : "",
+  const contactInfo = [
+    band.city || "",
     band.contact_phone ? `Whatsapp: ${band.contact_phone}` : "",
-    band.instagram ? `Instagram: ${band.instagram}` : ""
-  ].filter(Boolean).join(" | "), textX, titleY + 12);
+    band.contact_email ? `Email: ${band.contact_email}` : "",
+    band.instagram ? `Insta: ${band.instagram}` : ""
+  ].filter(Boolean).join(" | ");
+  doc.text(contactInfo, pageWidth / 2, currentY, { align: "center" });
+  currentY += 15;
 
-  currentY = Math.max(currentY + 25, titleY + 20) + 10;
+  // 4. Biografia
+  if (band.bio) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("Biografia", margin, currentY);
+    currentY += 6;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    const bioLines = doc.splitTextToSize(band.bio, contentWidth);
+    doc.text(bioLines, margin, currentY);
+    currentY += (bioLines.length * 5) + 10;
+  }
 
-  // 3. Biografia
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text("Biografia", margin, currentY);
-  currentY += 6;
-  
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  const bioLines = doc.splitTextToSize(band.bio || "Biografia não informada.", contentWidth);
-  doc.text(bioLines, margin, currentY);
-  currentY += (bioLines.length * 5) + 10;
+  // 5. Integrantes
+  if (band.members) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("Integrantes", margin, currentY);
+    currentY += 6;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    const memberLines = doc.splitTextToSize(band.members, contentWidth);
+    doc.text(memberLines, margin, currentY);
+    currentY += (memberLines.length * 5) + 10;
+  }
 
-  // 4. Integrantes
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text("Integrantes", margin, currentY);
-  currentY += 6;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  const memberLines = doc.splitTextToSize(band.members || "Não informado.", contentWidth);
-  doc.text(memberLines, margin, currentY);
-  currentY += (memberLines.length * 5) + 10;
-
-  // 5. Repertório (Opcional)
+  // 6. Repertório
   if (band.repertoire) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
@@ -105,8 +128,8 @@ export async function generatePressKitPDF(band) {
     doc.text(repLines, margin, currentY);
   }
 
-  // --- PÁGINA 2: GALERIA DE FOTOS ---
-  if (band.gallery_urls && band.gallery_urls.length > 0) {
+  // --- PÁGINA 2: GALERIA ---
+  if (band.gallery && band.gallery.length > 0) {
     doc.addPage();
     currentY = margin;
     
@@ -114,24 +137,24 @@ export async function generatePressKitPDF(band) {
     doc.setFontSize(18);
     doc.text(band.name.toUpperCase(), margin, currentY);
     doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
     doc.text("GALERIA DE FOTOS", margin, currentY + 6);
     currentY += 15;
 
-    // Grid simples de 2 colunas para galeria
     const imgWidth = (contentWidth - 5) / 2;
-    const imgHeight = imgWidth * 0.66; // Proporção 3:2
+    const imgHeight = imgWidth * 0.66;
     let xOffset = margin;
 
-    for (let i = 0; i < band.gallery_urls.length; i++) {
+    for (let i = 0; i < band.gallery.length; i++) {
       if (currentY + imgHeight > pageHeight - margin) {
         doc.addPage();
         currentY = margin;
       }
       try {
-        const galImg = await loadImage(formatUrl(band.gallery_urls[i]));
-        doc.addImage(galImg, "JPEG", xOffset, currentY, imgWidth, imgHeight);
-      } catch(e) {}
+        const galImg = await getImageData(formatUrl(band.gallery[i]));
+        doc.addImage(galImg.dataUrl, galImg.format, xOffset, currentY, imgWidth, imgHeight);
+      } catch(e) {
+        console.warn("Erro ao carregar imagem da galeria");
+      }
 
       if (i % 2 === 0) {
         xOffset = margin + imgWidth + 5;
@@ -143,8 +166,9 @@ export async function generatePressKitPDF(band) {
   }
 
   // --- PÁGINA 3: RIDER TÉCNICO ---
-  // Só cria essa página se tiver alguma info técnica
-  if (band.stage_plot_url || (band.tech_requirements && band.tech_requirements.length > 0) || band.tech_crew || band.tech_observations) {
+  const hasTech = band.stage_plot_url || (band.tech_requirements && band.tech_requirements.length > 0) || band.tech_crew || band.tech_observations;
+  
+  if (hasTech) {
     doc.addPage();
     currentY = margin;
 
@@ -155,26 +179,25 @@ export async function generatePressKitPDF(band) {
     doc.text("RIDER TÉCNICO", margin, currentY + 6);
     currentY += 15;
 
-    // 1. Mapa de Palco (Stage Plot)
     if (band.stage_plot_url) {
       try {
-        const plotImg = await loadImage(formatUrl(band.stage_plot_url));
+        const plotImg = await getImageData(formatUrl(band.stage_plot_url));
         const plotRatio = plotImg.width / plotImg.height;
         let pHeight = contentWidth / plotRatio;
-        if (pHeight > 100) pHeight = 100; // Limita a altura para caber o resto
+        if (pHeight > 120) pHeight = 120;
         
-        doc.addImage(plotImg, "JPEG", margin, currentY, contentWidth, pHeight);
+        doc.addImage(plotImg.dataUrl, plotImg.format, margin, currentY, contentWidth, pHeight);
         currentY += pHeight + 10;
-      } catch(e) {}
+      } catch(e) {
+        console.warn("Erro ao carregar mapa de palco");
+      }
     }
 
-    // Verifica quebra de página
     if (currentY > pageHeight - 60) {
       doc.addPage();
       currentY = margin;
     }
 
-    // 2. Descritivo (Input List / Backline)
     if (band.tech_requirements && band.tech_requirements.length > 0) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(14);
@@ -184,25 +207,30 @@ export async function generatePressKitPDF(band) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       
-      // Divide em 2 colunas para economizar espaço
+      const colWidth = (contentWidth / 2) - 5;
       const col1X = margin;
-      const col2X = margin + (contentWidth / 2);
-      let listY = currentY;
+      const col2X = margin + colWidth + 10;
+      
+      let leftY = currentY;
+      let rightY = currentY;
 
       band.tech_requirements.forEach((req, index) => {
-        const xPos = index % 2 === 0 ? col1X : col2X;
-        const text = `${index + 1}. ${req.item} (${req.provider})`;
-        doc.text(text, xPos, listY);
+        const qtyText = req.qtd ? `${req.qtd}x ` : '';
+        const text = `${index + 1}. ${qtyText}${req.item} (${req.provider})`;
+        // Quebra a linha de forma inteligente para não vazar a coluna
+        const lines = doc.splitTextToSize(text, colWidth);
         
-        if (index % 2 !== 0) {
-          listY += 6;
+        if (index % 2 === 0) {
+          doc.text(lines, col1X, leftY);
+          leftY += (lines.length * 5) + 2;
+        } else {
+          doc.text(lines, col2X, rightY);
+          rightY += (lines.length * 5) + 2;
         }
       });
-      
-      currentY = listY + (band.tech_requirements.length % 2 !== 0 ? 6 : 0) + 10;
+      currentY = Math.max(leftY, rightY) + 10;
     }
 
-    // 3. Equipe Técnica e Observações (Página 4 se não couber)
     if (currentY > pageHeight - 40 && (band.tech_crew || band.tech_observations)) {
       doc.addPage();
       currentY = margin;
@@ -236,6 +264,5 @@ export async function generatePressKitPDF(band) {
     }
   }
 
-  // Baixa o arquivo
   doc.save(`PressKit_${band.name.replace(/\s+/g, '_')}.pdf`);
 }

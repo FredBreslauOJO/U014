@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2, Music2, Upload, Save, ArrowLeft, UserPlus, Star, Pencil, Youtube, Play, Settings2 } from "lucide-react";
+import { Plus, Trash2, Music2, Upload, Save, ArrowLeft, UserPlus, Star, Pencil, Youtube, Play, Settings2, GripVertical, Check } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,6 @@ const emptyForm = () => ({
   name: "", bio: "", genres: [], performance_type: "ambos", city: "",
   whatsapp: "", email: "", instagram: "", youtube: "", facebook: "", members: "",
   logo_url: "", photo_url: "", gallery: [], links: [], collaborator_emails: [], videos: [],
-  // Novos campos pro PDF/Rider
   show_duration: "", repertoire: "", stage_plot_url: "", tech_requirements: [], tech_crew: "", tech_observations: "",
 });
 
@@ -40,22 +39,21 @@ export default function BandRegister() {
   const [tracks, setTracks] = useState([]);
   const [newTrack, setNewTrack] = useState({ title: "", url: "", source: "youtube" });
   const [newVideo, setNewVideo] = useState({ title: "", url: "" });
-  const [newTechReq, setNewTechReq] = useState({ item: "", provider: "Próprio" });
+  
+  // Rider Setup
+  const [newTechReq, setNewTechReq] = useState({ qtd: "", item: "", provider: "Próprio" });
+  const [editReqIndex, setEditReqIndex] = useState(null);
+  const [draggedItem, setDraggedItem] = useState(null);
+
   const [genreSuggestions, setGenreSuggestions] = useState(GENRES);
   const [form, setForm] = useState(emptyForm());
 
   const loadMyBands = async () => {
     if (!user) return [];
     const { data: all, error } = await supabase.from("bands").select("*").order("created_date", { ascending: false });
-    
-    if (error) {
-      console.error("Erro ao carregar bandas:", error);
-      return [];
-    }
+    if (error) return [];
 
     const uEmail = user.email ? String(user.email).trim().toLowerCase() : "";
-    
-    // Filtro sanitizado com trim e lowerCase
     const mine = (all || []).filter((b) => {
       if (!b) return false;
       const createdByMatch = Boolean(b.created_by_id && String(b.created_by_id) === String(user.id));
@@ -144,33 +142,57 @@ export default function BandRegister() {
       toast({ title: "URL do YouTube inválida", variant: "destructive" });
       return;
     }
-
-    const videoObj = {
-      title: newVideo.title.trim() || "Vídeo",
-      url: newVideo.url.trim(),
-      youtube_id: ytId,
-    };
-
+    const videoObj = { title: newVideo.title.trim() || "Vídeo", url: newVideo.url.trim(), youtube_id: ytId };
     setForm((f) => ({ ...f, videos: [...(f.videos || []), videoObj] }));
     setNewVideo({ title: "", url: "" });
     toast({ title: "Vídeo adicionado!" });
   };
 
-  const removeVideo = (index) => {
-    setForm((f) => ({ ...f, videos: (f.videos || []).filter((_, i) => i !== index) }));
-  };
+  const removeVideo = (index) => setForm((f) => ({ ...f, videos: (f.videos || []).filter((_, i) => i !== index) }));
 
+  // Rider Management
   const addTechReq = () => {
     if (!newTechReq.item.trim()) {
       toast({ title: "Informe o nome do equipamento", variant: "destructive" });
       return;
     }
-    setForm((f) => ({ ...f, tech_requirements: [...(f.tech_requirements || []), { ...newTechReq }] }));
-    setNewTechReq({ item: "", provider: "Próprio" });
+    const updatedReqs = [...(form.tech_requirements || [])];
+    if (editReqIndex !== null) {
+      updatedReqs[editReqIndex] = { ...newTechReq };
+      setEditReqIndex(null);
+    } else {
+      updatedReqs.push({ ...newTechReq });
+    }
+    setForm((f) => ({ ...f, tech_requirements: updatedReqs }));
+    setNewTechReq({ qtd: "", item: "", provider: "Próprio" });
   };
 
-  const removeTechReq = (index) => {
-    setForm((f) => ({ ...f, tech_requirements: (f.tech_requirements || []).filter((_, i) => i !== index) }));
+  const startEditTechReq = (index) => {
+    setNewTechReq(form.tech_requirements[index]);
+    setEditReqIndex(index);
+  };
+
+  const removeTechReq = (index) => setForm((f) => ({ ...f, tech_requirements: (f.tech_requirements || []).filter((_, i) => i !== index) }));
+
+  // Drag and Drop
+  const handleDragStart = (e, index) => {
+    setDraggedItem(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e, index) => {
+    e.preventDefault();
+    if (draggedItem === null || draggedItem === index) return;
+    const items = Array.from(form.tech_requirements || []);
+    const draggedReq = items[draggedItem];
+    items.splice(draggedItem, 1);
+    items.splice(index, 0, draggedReq);
+    set("tech_requirements", items);
+    setDraggedItem(null);
   };
 
   const save = async () => {
@@ -418,6 +440,40 @@ export default function BandRegister() {
           </div>
         </section>
 
+        {/* PLAYLIST */}
+        {editingBand && (
+          <section className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <Music2 size={16} className="text-[#a8f776]" />
+              <h2 className="text-sm font-bold text-[#a8f776] uppercase tracking-wider">Playlist da banda</h2>
+            </div>
+            <div className="grid sm:grid-cols-4 gap-2">
+              <Input value={newTrack.title} onChange={(e) => setNewTrack({ ...newTrack, title: e.target.value })} placeholder="Título" className="bg-[#0a0a0a] border-[#222] text-white" />
+              <Input value={newTrack.url} onChange={(e) => setNewTrack({ ...newTrack, url: e.target.value })} placeholder="https://..." className="bg-[#0a0a0a] border-[#222] text-white sm:col-span-2" />
+              <select value={newTrack.source} onChange={(e) => setNewTrack({ ...newTrack, source: e.target.value })} className="bg-[#0a0a0a] border border-[#222] text-white rounded-md h-10 px-2 text-sm">
+                <option value="youtube">YouTube</option>
+                <option value="spotify">Spotify</option>
+                <option value="soundcloud">SoundCloud</option>
+                <option value="bandcamp">Bandcamp</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+            <Button onClick={addTrack} className="bg-[#a8f776] text-black hover:bg-[#8fd862]"><Plus size={14} className="mr-1" /> Adicionar faixa</Button>
+            <div className="space-y-1">
+              {tracks.map((t) => (
+                <div key={t.id} className="flex items-center gap-3 p-2 bg-[#0e0e0e] rounded">
+                  <Music2 size={14} className="text-[#a8f776] shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-white truncate">{t.title}</div>
+                    <div className="text-xs text-[#707070] capitalize">{t.source}</div>
+                  </div>
+                  <button onClick={() => deleteTrack(t.id)} className="text-[#505050] hover:text-red-400"><Trash2 size={14} /></button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* ESPECIFICAÇÕES TÉCNICAS E RIDER */}
         <section className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-5 space-y-4">
           <div className="flex items-center gap-2">
@@ -455,6 +511,12 @@ export default function BandRegister() {
             <Label className="text-[#b0b0b0] text-sm block mb-2">Descritivo Técnico (Input List / Backline)</Label>
             <div className="flex flex-col sm:flex-row gap-2 mb-3">
               <Input 
+                value={newTechReq.qtd} 
+                onChange={(e) => setNewTechReq({ ...newTechReq, qtd: e.target.value })} 
+                placeholder="Qtd (ex: 2)" 
+                className="bg-[#0a0a0a] border-[#222] text-white w-full sm:w-24" 
+              />
+              <Input 
                 value={newTechReq.item} 
                 onChange={(e) => setNewTechReq({ ...newTechReq, item: e.target.value })} 
                 placeholder="Ex: Microfone SM58, Amplificador 100w..." 
@@ -469,21 +531,37 @@ export default function BandRegister() {
                   <option value="Próprio">Próprio</option>
                   <option value="Contratante">Contratante</option>
                 </select>
-                <Button onClick={addTechReq} type="button" className="bg-[#a8f776] text-black hover:bg-[#8fd862] px-3"><Plus size={16} /></Button>
+                <Button onClick={addTechReq} type="button" className="bg-[#a8f776] text-black hover:bg-[#8fd862] px-3">
+                  {editReqIndex !== null ? <Check size={16} /> : <Plus size={16} />}
+                </Button>
               </div>
             </div>
             
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 mt-4">
               {(form.tech_requirements || []).map((req, i) => (
-                <div key={i} className="flex items-center justify-between bg-[#1a1a1a] border border-[#222] p-2.5 rounded-md text-sm text-white group">
-                  <div>
-                    <span className="font-mono text-[#a8f776] mr-2">{i + 1}.</span> 
-                    <span>{req.item}</span> 
-                    <span className="text-[#808080] text-xs ml-2 uppercase">({req.provider})</span>
+                <div 
+                  key={i} 
+                  draggable 
+                  onDragStart={(e) => handleDragStart(e, i)}
+                  onDragOver={(e) => handleDragOver(e, i)}
+                  onDrop={(e) => handleDrop(e, i)}
+                  className={`flex items-center justify-between bg-[#1a1a1a] border ${editReqIndex === i ? 'border-[#a8f776]' : 'border-[#222]'} p-2.5 rounded-md text-sm text-white group cursor-move hover:border-[#a8f776]/50 transition-colors`}
+                >
+                  <div className="flex-1 flex items-center gap-2 overflow-hidden">
+                    <GripVertical size={14} className="text-[#555] shrink-0" />
+                    <span className="font-mono text-[#a8f776] shrink-0">{i + 1}.</span> 
+                    {req.qtd && <span className="font-bold text-[#d0d0d0] shrink-0">{req.qtd}x</span>}
+                    <span className="truncate">{req.item}</span> 
+                    <span className="text-[#808080] text-[10px] uppercase border border-[#333] px-1.5 rounded shrink-0 hidden sm:inline-block">{req.provider}</span>
                   </div>
-                  <button type="button" onClick={() => removeTechReq(i)} className="text-[#505050] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Trash2 size={14} />
-                  </button>
+                  <div className="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0 ml-2">
+                    <button type="button" onClick={() => startEditTechReq(i)} className="text-[#505050] hover:text-[#a8f776]">
+                      <Pencil size={14} />
+                    </button>
+                    <button type="button" onClick={() => removeTechReq(i)} className="text-[#505050] hover:text-red-400">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               ))}
               {(!form.tech_requirements || form.tech_requirements.length === 0) && (
@@ -502,40 +580,6 @@ export default function BandRegister() {
             <Textarea value={form.tech_observations || ""} onChange={(e) => set("tech_observations", e.target.value)} rows={2} className="bg-[#0a0a0a] border-[#222] text-white" placeholder="Ex: Precisamos de palco de no mínimo X metros, cabos específicos, espaço para merchandising..." />
           </div>
         </section>
-
-        {/* PLAYLIST */}
-        {editingBand && (
-          <section className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-5 space-y-4">
-            <div className="flex items-center gap-2">
-              <Music2 size={16} className="text-[#a8f776]" />
-              <h2 className="text-sm font-bold text-[#a8f776] uppercase tracking-wider">Playlist da banda</h2>
-            </div>
-            <div className="grid sm:grid-cols-4 gap-2">
-              <Input value={newTrack.title} onChange={(e) => setNewTrack({ ...newTrack, title: e.target.value })} placeholder="Título" className="bg-[#0a0a0a] border-[#222] text-white" />
-              <Input value={newTrack.url} onChange={(e) => setNewTrack({ ...newTrack, url: e.target.value })} placeholder="https://..." className="bg-[#0a0a0a] border-[#222] text-white sm:col-span-2" />
-              <select value={newTrack.source} onChange={(e) => setNewTrack({ ...newTrack, source: e.target.value })} className="bg-[#0a0a0a] border border-[#222] text-white rounded-md h-10 px-2 text-sm">
-                <option value="youtube">YouTube</option>
-                <option value="spotify">Spotify</option>
-                <option value="soundcloud">SoundCloud</option>
-                <option value="bandcamp">Bandcamp</option>
-                <option value="outro">Outro</option>
-              </select>
-            </div>
-            <Button onClick={addTrack} className="bg-[#a8f776] text-black hover:bg-[#8fd862]"><Plus size={14} className="mr-1" /> Adicionar faixa</Button>
-            <div className="space-y-1">
-              {tracks.map((t) => (
-                <div key={t.id} className="flex items-center gap-3 p-2 bg-[#0e0e0e] rounded">
-                  <Music2 size={14} className="text-[#a8f776] shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-white truncate">{t.title}</div>
-                    <div className="text-xs text-[#707070] capitalize">{t.source}</div>
-                  </div>
-                  <button onClick={() => deleteTrack(t.id)} className="text-[#505050] hover:text-red-400"><Trash2 size={14} /></button>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
 
         {/* BARRA DE BOTÕES INFERIOR */}
         <div className="fixed bottom-0 left-0 md:left-[240px] right-0 bg-[#0e0e0e] border-t border-[#1a1a1a] p-4 flex gap-3 z-50 px-4 md:px-8 max-w-[900px] mx-auto md:bg-transparent md:border-t-0 md:static md:p-0 md:mt-6">

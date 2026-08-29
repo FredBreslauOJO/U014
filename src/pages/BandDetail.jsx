@@ -102,7 +102,6 @@ export default function BandDetail() {
     toast({ title: "Link do perfil copiado!" });
   };
 
-  // Lógica blindada para validar se o usuário atual é Dono ou Colaborador
   const isOwner = useMemo(() => {
     if (!user || !band) return false;
     const uEmail = user.email ? String(user.email).trim().toLowerCase() : "";
@@ -180,7 +179,7 @@ export default function BandDetail() {
           <div className="flex items-end gap-5 flex-1 flex-wrap">
             <div className="w-32 h-32 md:w-44 md:h-44 rounded-lg overflow-hidden bg-[#222] border-2 border-[#1a1a1a] shadow-2xl shrink-0">
               {band.logo_url || band.photo_url ? (
-                <img src={formatUrl(band.logo_url || band.photo_url)} alt={band.name} className="w-full h-full object-cover" />
+                <img src={formatUrl(band.logo_url || band.photo_url)} alt={band.name} className="w-full h-full object-cover bg-white" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-5xl font-black text-[#555]">{band.name.charAt(0)}</div>
               )}
@@ -198,17 +197,12 @@ export default function BandDetail() {
                 }`}>{band.performance_type}</span>
               </div>
               <div className="flex items-center gap-3 mt-4 flex-wrap">
-                <Button onClick={playAll} disabled={!playableTracks.length} className="bg-white text-black hover:bg-[#e0e0e0] font-bold">
-                  <Play size={16} className="mr-1" fill="currentColor" /> Reproduzir
+                <Button onClick={() => document.getElementById('bio-section')?.scrollIntoView({behavior: 'smooth'})} className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold">
+                  Bio
                 </Button>
 
-                <Button
-                  onClick={handleDownloadPDF}
-                  disabled={generatingPDF}
-                  className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold"
-                >
-                  <FileDown size={16} className="mr-1.5" />
-                  {generatingPDF ? "Gerando..." : "PRESS KIT (PDF)"}
+                <Button onClick={() => document.getElementById('rider-section')?.scrollIntoView({behavior: 'smooth'})} className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold">
+                  Rider Técnico
                 </Button>
 
                 <Button
@@ -242,7 +236,7 @@ export default function BandDetail() {
         <div className="grid lg:grid-cols-3 gap-8 mt-6">
           <div className="lg:col-span-2 space-y-8">
             {band.bio && (
-              <section>
+              <section id="bio-section" className="scroll-mt-8">
                 <h2 className="text-lg font-bold text-white mb-3">Sobre</h2>
                 <p className="text-[#c0c0c0] text-sm leading-relaxed whitespace-pre-wrap">{band.bio}</p>
               </section>
@@ -290,11 +284,20 @@ export default function BandDetail() {
               </section>
             )}
 
-            {band.rider_notes && (
-              <section>
+            {band.tech_requirements && band.tech_requirements.length > 0 && (
+              <section id="rider-section" className="scroll-mt-8">
                 <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2"><Music2 size={16} /> Rider Técnico & Input List</h2>
-                <div className="bg-[#121212] border border-[#1e1e1e] p-4 rounded-lg font-mono text-xs text-[#d0d0d0] whitespace-pre-wrap leading-relaxed">
-                  {band.rider_notes}
+                <div className="bg-[#121212] border border-[#1e1e1e] p-4 rounded-lg font-mono text-xs text-[#d0d0d0] leading-relaxed">
+                  <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
+                    {band.tech_requirements.map((req, i) => (
+                      <div key={i} className="flex justify-between border-b border-[#222] pb-1">
+                        <span><span className="text-[#a8f776]">{i + 1}.</span> {req.qtd ? `${req.qtd}x ` : ''}{req.item}</span>
+                        <span className="text-[#808080] ml-2">({req.provider})</span>
+                      </div>
+                    ))}
+                  </div>
+                  {band.tech_crew && <div className="mt-4 pt-4 border-t border-[#333]"><strong>Equipe:</strong> {band.tech_crew}</div>}
+                  {band.tech_observations && <div className="mt-2 text-[#999]"><strong>Obs:</strong> {band.tech_observations}</div>}
                 </div>
               </section>
             )}
