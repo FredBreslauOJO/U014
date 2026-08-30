@@ -80,7 +80,7 @@ export default function BandDetail() {
   const handleDownloadPDF = async () => {
     if (!band) return;
     setGeneratingPDF(true);
-    await generatePressKitPDF(band, tracks);
+    await generatePressKitPDF(band);
     setGeneratingPDF(false);
   };
 
@@ -201,10 +201,6 @@ export default function BandDetail() {
                   Bio
                 </Button>
 
-                <Button onClick={() => document.getElementById('rider-section')?.scrollIntoView({behavior: 'smooth'})} className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold">
-                  Rider Técnico
-                </Button>
-
                 <Button
                   onClick={handleShareBand}
                   variant="outline"
@@ -284,24 +280,6 @@ export default function BandDetail() {
               </section>
             )}
 
-            {band.tech_requirements && band.tech_requirements.length > 0 && (
-              <section id="rider-section" className="scroll-mt-8">
-                <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2"><Music2 size={16} /> Rider Técnico & Input List</h2>
-                <div className="bg-[#121212] border border-[#1e1e1e] p-4 rounded-lg font-mono text-xs text-[#d0d0d0] leading-relaxed">
-                  <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
-                    {band.tech_requirements.map((req, i) => (
-                      <div key={i} className="flex justify-between border-b border-[#222] pb-1">
-                        <span><span className="text-[#a8f776]">{i + 1}.</span> {req.qtd ? `${req.qtd}x ` : ''}{req.item}</span>
-                        <span className="text-[#808080] ml-2">({req.provider})</span>
-                      </div>
-                    ))}
-                  </div>
-                  {band.tech_crew && <div className="mt-4 pt-4 border-t border-[#333]"><strong>Equipe:</strong> {band.tech_crew}</div>}
-                  {band.tech_observations && <div className="mt-2 text-[#999]"><strong>Obs:</strong> {band.tech_observations}</div>}
-                </div>
-              </section>
-            )}
-
             {gallery.length > 0 && (
               <section>
                 <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2"><ImageIcon size={16} /> Galeria</h2>
@@ -355,6 +333,42 @@ export default function BandDetail() {
                 {tracks.length === 0 && <p className="text-[#505050] text-sm py-4">Nenhuma música cadastrada ainda.</p>}
               </div>
             </section>
+
+            {/* RIDER TÉCNICO E INPUT LIST REPOSICIONADO PARA O FINAL */}
+            {band.tech_requirements && band.tech_requirements.length > 0 && (
+              <section id="rider-section" className="scroll-mt-8 pt-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Music2 size={16} /> Rider Técnico & Input List
+                  </h2>
+                  <Button
+                    onClick={handleDownloadPDF}
+                    disabled={generatingPDF}
+                    size="sm"
+                    className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold text-xs"
+                  >
+                    <FileDown size={14} className="mr-1.5" />
+                    {generatingPDF ? "Gerando..." : "BAIXAR RIDER (PDF)"}
+                  </Button>
+                </div>
+                
+                <div className="bg-[#121212] border border-[#1e1e1e] p-5 rounded-lg font-mono text-xs text-[#d0d0d0] leading-relaxed">
+                  <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3">
+                    {band.tech_requirements.map((req, i) => (
+                      <div key={i} className="flex justify-between border-b border-[#222] pb-1.5">
+                        <span className="flex-1 truncate pr-2">
+                          <span className="text-[#a8f776] font-bold mr-1">{i + 1}.</span> 
+                          {req.qtd ? `${req.qtd}x ` : ''}{req.item}
+                        </span>
+                        <span className="text-[#808080] shrink-0">({req.provider})</span>
+                      </div>
+                    ))}
+                  </div>
+                  {band.tech_crew && <div className="mt-5 pt-5 border-t border-[#222]"><strong className="text-white">Equipe:</strong> {band.tech_crew}</div>}
+                  {band.tech_observations && <div className="mt-2 text-[#999]"><strong className="text-[#c0c0c0]">Obs:</strong> {band.tech_observations}</div>}
+                </div>
+              </section>
+            )}
           </div>
 
           <div className="space-y-6">
