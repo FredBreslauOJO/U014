@@ -31,7 +31,7 @@ const navItems = [
   { to: '/partners', label: 'Guia da Cena', icon: Briefcase },
   { to: '/news', label: 'Notícias', icon: Newspaper },
   { to: '/threads', label: 'Threads', icon: MessagesSquare },
-  { to: '/contact', label: 'Contato', icon: Mail },
+  { to: '/contact', label: 'Contato / Faça Parte', icon: Mail },
 ];
 
 export default function Sidebar({ onNavigate }) {
