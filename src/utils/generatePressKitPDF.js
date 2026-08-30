@@ -1,26 +1,81 @@
 import { jsPDF } from "jspdf";
 import { formatUrl } from "@/lib/supabaseStorage";
 
-// Função blindada para converter imagem em Base64 antes de injetar no PDF
-const getImageData = (url) => {
+// Função blindada para processar, cortar e converter imagens sem distorcer
+const getImageData = (url, options = {}) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "Anonymous";
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
       const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0);
-      
-      const isPng = url.toLowerCase().includes(".png");
-      const format = isPng ? "image/png" : "image/jpeg";
-      
+
+      let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
+      let destW = img.width, destH = img.height;
+
+      // 1. Tratamento da Hero Image (Corta em Banner 2.35:1 para não distorcer)
+      if (options.isHero) {
+        const targetRatio = 2.35; 
+        const currentRatio = img.width / img.height;
+        if (currentRatio > targetRatio) {
+          srcW = img.height * targetRatio;
+          srcX = (img.width - srcW) / 2;
+        } else {
+          srcH = img.width / targetRatio;
+          srcY = (img.height - srcH) * 0.3; // Foco ligeiramente para cima
+        }
+        destW = srcW;
+        destH = srcH;
+      }
+
+      // 2. Tratamento da Logo (Força proporção 1:1)
+      if (options.isLogo) {
+        const size = Math.min(img.width, img.height);
+        srcW = size; 
+        srcH = size;
+        srcX = (img.width - size) / 2;
+        srcY = (img.height - size) / 2;
+        destW = size; 
+        destH = size;
+      }
+
+      canvas.width = destW;
+      canvas.height = destH;
+
+      // Mascaras de corte
+      if (options.isLogo) {
+        ctx.beginPath();
+        ctx.arc(destW / 2, destH / 2, destW / 2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+        ctx.fillStyle = "#0a0a0a"; 
+        ctx.fill();
+      } else if (options.isHero) {
+        const r = Math.min(destW, destH) * 0.05;
+        ctx.beginPath();
+        ctx.moveTo(r, 0);
+        ctx.lineTo(destW - r, 0);
+        ctx.quadraticCurveTo(destW, 0, destW, r);
+        ctx.lineTo(destW, destH - r);
+        ctx.quadraticCurveTo(destW, destH, destW - r, destH);
+        ctx.lineTo(r, destH);
+        ctx.quadraticCurveTo(0, destH, 0, destH - r);
+        ctx.lineTo(0, r);
+        ctx.quadraticCurveTo(0, 0, r, 0);
+        ctx.closePath();
+        ctx.clip();
+      }
+
+      ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, destW, destH);
+
+      const usePng = options.isLogo || options.isHero || url.toLowerCase().includes('.png');
+      const format = usePng ? "image/png" : "image/jpeg";
+
       resolve({
-        dataUrl: canvas.toDataURL(format),
-        width: img.width,
-        height: img.height,
-        format: isPng ? "PNG" : "JPEG"
+        dataUrl: canvas.toDataURL(format, 0.95),
+        width: destW,
+        height: destH,
+        format: usePng ? "PNG" : "JPEG"
       });
     };
     img.onerror = (e) => reject(e);
@@ -39,46 +94,64 @@ export async function generatePressKitPDF(band) {
 
   // --- PÁGINA 1: INFORMAÇÕES E BIO ---
   
-  // 1. Hero Image (topo)
+  let bottomOfHero = currentY;
   if (band.photo_url) {
     try {
-      const heroImg = await getImageData(formatUrl(band.photo_url));
+      const heroImg = await getImageData(formatUrl(band.photo_url), { isHero: true });
       const imgRatio = heroImg.width / heroImg.height;
-      let printHeight = contentWidth / imgRatio;
-      if (printHeight > 70) printHeight = 70; // Limite de altura
+      const printHeight = contentWidth / imgRatio;
       
       doc.addImage(heroImg.dataUrl, heroImg.format, margin, currentY, contentWidth, printHeight);
-      currentY += printHeight + 15;
+      bottomOfHero = currentY + printHeight;
+      currentY = bottomOfHero + 15;
     } catch (e) {
       console.warn("Erro ao carregar hero image.");
     }
   }
 
-  // 2. Logo
   if (band.logo_url) {
     try {
-      const logoImg = await getImageData(formatUrl(band.logo_url));
-      const logoSize = 30;
-      doc.addImage(logoImg.dataUrl, logoImg.format, (pageWidth - logoSize) / 2, currentY - (logoSize / 2), logoSize, logoSize);
-      currentY += (logoSize / 2) + 10;
+      const logoImg = await getImageData(formatUrl(band.logo_url), { isLogo: true });
+      const logoSize = 35;
+      const logoX = (pageWidth - logoSize) / 2;
+      
+      const logoY = band.photo_url ? bottomOfHero - (logoSize / 2) : margin;
+      
+      doc.setFillColor(255, 255, 255);
+      doc.circle(pageWidth / 2, logoY + (logoSize / 2), (logoSize / 2) + 1.5, 'F');
+      
+      doc.addImage(logoImg.dataUrl, logoImg.format, logoX, logoY, logoSize, logoSize);
+      currentY = Math.max(currentY, logoY + logoSize + 15);
     } catch (e) {
       console.warn("Erro ao carregar logo.");
     }
   }
 
-  // 3. Título e Contato (Centralizados)
+  // TÍTULO E GÊNERO MUSICAL
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(24);
+  doc.setFontSize(26);
   const title = band.name.toUpperCase();
   doc.text(title, pageWidth / 2, currentY, { align: "center" });
   currentY += 6;
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  const genre = (band.genre || "Gênero não informado").toUpperCase();
-  doc.text(genre, pageWidth / 2, currentY, { align: "center" });
+  
+  // ---> AQUI ESTÁ A CORREÇÃO <---
+  // Verifica primeiro se a lista 'genres' existe e não está vazia. Se não tiver, busca o campo 'genre' legado.
+  let extractedGenre = "Gênero não informado";
+  if (Array.isArray(band.genres) && band.genres.length > 0) {
+    extractedGenre = band.genres.join(", ");
+  } else if (typeof band.genres === "string" && band.genres.trim() !== "") {
+    extractedGenre = band.genres;
+  } else if (band.genre && String(band.genre).trim() !== "") {
+    extractedGenre = band.genre;
+  }
+  
+  doc.text(extractedGenre.toUpperCase(), pageWidth / 2, currentY, { align: "center" });
   currentY += 6;
 
+  // CONTATOS
   doc.setFontSize(9);
   const contactInfo = [
     band.city || "",
@@ -87,9 +160,8 @@ export async function generatePressKitPDF(band) {
     band.instagram ? `Insta: ${band.instagram}` : ""
   ].filter(Boolean).join(" | ");
   doc.text(contactInfo, pageWidth / 2, currentY, { align: "center" });
-  currentY += 15;
+  currentY += 18;
 
-  // 4. Biografia
   if (band.bio) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
@@ -102,7 +174,6 @@ export async function generatePressKitPDF(band) {
     currentY += (bioLines.length * 5) + 10;
   }
 
-  // 5. Integrantes
   if (band.members) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
@@ -115,7 +186,6 @@ export async function generatePressKitPDF(band) {
     currentY += (memberLines.length * 5) + 10;
   }
 
-  // 6. Repertório
   if (band.repertoire) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
@@ -140,27 +210,30 @@ export async function generatePressKitPDF(band) {
     doc.text("GALERIA DE FOTOS", margin, currentY + 6);
     currentY += 15;
 
-    const imgWidth = (contentWidth - 5) / 2;
-    const imgHeight = imgWidth * 0.66;
-    let xOffset = margin;
+    const gap = 4;
+    const colWidth = (contentWidth - gap) / 2;
+    let colY = [currentY, currentY]; 
 
     for (let i = 0; i < band.gallery.length; i++) {
-      if (currentY + imgHeight > pageHeight - margin) {
-        doc.addPage();
-        currentY = margin;
-      }
       try {
         const galImg = await getImageData(formatUrl(band.gallery[i]));
-        doc.addImage(galImg.dataUrl, galImg.format, xOffset, currentY, imgWidth, imgHeight);
+        const imgRatio = galImg.width / galImg.height;
+        const imgHeight = colWidth / imgRatio;
+
+        let targetCol = colY[0] <= colY[1] ? 0 : 1;
+
+        if (colY[targetCol] + imgHeight > pageHeight - margin) {
+          doc.addPage();
+          colY = [margin, margin];
+          targetCol = 0;
+        }
+
+        const xPos = margin + (targetCol * (colWidth + gap));
+        doc.addImage(galImg.dataUrl, galImg.format, xPos, colY[targetCol], colWidth, imgHeight);
+        
+        colY[targetCol] += imgHeight + gap;
       } catch(e) {
         console.warn("Erro ao carregar imagem da galeria");
-      }
-
-      if (i % 2 === 0) {
-        xOffset = margin + imgWidth + 5;
-      } else {
-        xOffset = margin;
-        currentY += imgHeight + 5;
       }
     }
   }
@@ -184,7 +257,7 @@ export async function generatePressKitPDF(band) {
         const plotImg = await getImageData(formatUrl(band.stage_plot_url));
         const plotRatio = plotImg.width / plotImg.height;
         let pHeight = contentWidth / plotRatio;
-        if (pHeight > 120) pHeight = 120;
+        if (pHeight > 130) pHeight = 130;
         
         doc.addImage(plotImg.dataUrl, plotImg.format, margin, currentY, contentWidth, pHeight);
         currentY += pHeight + 10;
@@ -207,9 +280,9 @@ export async function generatePressKitPDF(band) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       
-      const colWidth = (contentWidth / 2) - 5;
+      const colWidthRider = (contentWidth / 2) - 5;
       const col1X = margin;
-      const col2X = margin + colWidth + 10;
+      const col2X = margin + colWidthRider + 10;
       
       let leftY = currentY;
       let rightY = currentY;
@@ -217,8 +290,7 @@ export async function generatePressKitPDF(band) {
       band.tech_requirements.forEach((req, index) => {
         const qtyText = req.qtd ? `${req.qtd}x ` : '';
         const text = `${index + 1}. ${qtyText}${req.item} (${req.provider})`;
-        // Quebra a linha de forma inteligente para não vazar a coluna
-        const lines = doc.splitTextToSize(text, colWidth);
+        const lines = doc.splitTextToSize(text, colWidthRider);
         
         if (index % 2 === 0) {
           doc.text(lines, col1X, leftY);
