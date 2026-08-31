@@ -24,6 +24,29 @@ export default function ShowCard({
     year: "numeric",
   });
 
+  // --- LÓGICA DE BLINDAGEM DE DADOS ---
+  
+  // 1. Busca o Local do show independente do formato do banco
+  let venueName = show.venue_name;
+  if (!venueName && show.venues && Array.isArray(show.venues)) {
+    venueName = typeof show.venues[0] === 'object' ? show.venues.map(v => v.name).join(", ") : show.venues.join(", ");
+  }
+  if (!venueName && show.venue && typeof show.venue === 'object') {
+    venueName = show.venue.name;
+  }
+
+  // 2. Busca os Estilos/Gêneros
+  let genreText = show.genre;
+  if (!genreText && show.genres && Array.isArray(show.genres)) {
+    genreText = show.genres.join(", ");
+  } else if (!genreText && typeof show.genres === 'string') {
+    genreText = show.genres;
+  }
+
+  // 3. Busca e formata o Link de Ingressos (Adiciona https:// se a pessoa esquecer)
+  const rawUrl = show.ticket_url || show.ticket_link || show.link || show.url;
+  const ticketUrl = rawUrl ? (rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`) : null;
+
   return (
     <div className={`bg-[#121212] border rounded-xl overflow-hidden transition-all ${
       expanded ? "border-[#a8f776] shadow-lg shadow-[#a8f776]/10" : "border-[#1e1e1e] hover:border-[#2a2a2a]"
@@ -48,20 +71,20 @@ export default function ShowCard({
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-bold text-white text-base md:text-lg truncate">{show.title}</h3>
               
-              {/* DESTAQUE DO LOCAL E CIDADE */}
+              {/* TAGS: CIDADE, LOCAL E GÊNERO */}
               {show.city && (
-                <span className="bg-[#a8f776]/15 border border-[#a8f776]/40 text-[#a8f776] text-[11px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide flex items-center gap-1 shrink-0">
+                <span className="bg-[#a8f776]/15 border border-[#a8f776]/40 text-[#a8f776] text-[10px] md:text-[11px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide flex items-center gap-1 shrink-0">
                   <MapPin size={11} /> {show.city}
                 </span>
               )}
-               {show.venue_name && (
-                <span className="bg-[#181818] border border-[#282828] text-white text-[11px] font-semibold px-2 py-0.5 rounded-md">
-                   📍 {show.venue_name}
+              {venueName && (
+                <span className="bg-[#181818] border border-[#282828] text-[#e0e0e0] text-[10px] md:text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 shrink-0">
+                  📍 {venueName}
                 </span>
               )}
-               {show.genre && (
-                <span className="bg-[#2a2a2a] text-[#d0d0d0] text-[11px] font-medium px-2 py-0.5 rounded-md uppercase tracking-wide">
-                   {show.genre}
+              {genreText && (
+                <span className="bg-[#2a2a2a] text-[#a0a0a0] text-[9px] md:text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide shrink-0">
+                  {genreText}
                 </span>
               )}
             </div>
@@ -121,7 +144,7 @@ export default function ShowCard({
         </div>
       </div>
 
-      {/* ÁREA EXPANDIDA (NOVO LAYOUT LADO A LADO) */}
+      {/* ÁREA EXPANDIDA (LAYOUT LADO A LADO) */}
       {expanded && (
         <div className="border-t border-[#1a1a1a] bg-[#0d0d0e] p-5 md:p-6">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -157,21 +180,21 @@ export default function ShowCard({
             <div className="md:col-span-7 lg:col-span-8 flex flex-col justify-between space-y-5">
               <div className="space-y-4">
                 
-                {/* DESTAQUES DE CIDADE & LOCAL */}
+                {/* DESTAQUES: CIDADE, LOCAL E GÊNERO */}
                 <div className="flex flex-wrap items-center gap-2">
                   {show.city && (
                     <div className="bg-[#a8f776]/15 border border-[#a8f776]/40 text-[#a8f776] font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5">
                       <MapPin size={14} /> CIDADE: {show.city.toUpperCase()}
                     </div>
                   )}
-                  {show.venue_name && (
+                  {venueName && (
                     <div className="bg-[#181818] border border-[#282828] text-white text-xs font-semibold px-3 py-1.5 rounded-lg">
-                      📍 LOCAL: {show.venue_name}
+                      📍 LOCAL: {venueName.toUpperCase()}
                     </div>
                   )}
-                  {show.genre && (
+                  {genreText && (
                     <div className="bg-[#2a2a2a] text-[#d0d0d0] text-xs font-medium px-3 py-1.5 rounded-lg uppercase tracking-wide">
-                       ESTILO: {show.genre}
+                       ESTILO: {genreText}
                     </div>
                   )}
                 </div>
@@ -216,14 +239,14 @@ export default function ShowCard({
               </div>
 
               {/* BARRINHA DE BOTÕES DE AÇÃO NO RODAPÉ DO CARD */}
-              <div className="pt-4 border-t border-[#1e1e1e] flex flex-wrap items-center justify-between gap-3">
+              <div className="pt-4 border-t border-[#1e1e1e] flex flex-wrap items-center justify-between gap-3 mt-auto">
                 <div className="flex items-center gap-2 flex-wrap">
-                  {show.ticket_url && (
+                  {ticketUrl && (
                     <a
-                      href={show.ticket_url}
+                      href={ticketUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 transition-colors"
+                      className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-black text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 transition-colors uppercase"
                     >
                       <Ticket size={15} /> Ingressos / Informações
                     </a>
@@ -250,9 +273,9 @@ export default function ShowCard({
                     <Button
                       onClick={() => onDelete(show.id)}
                       variant="ghost"
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs h-9"
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs h-9 px-3"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={15} />
                     </Button>
                   </div>
                 )}
