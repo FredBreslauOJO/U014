@@ -15,7 +15,6 @@ export default function ShowCard({
   onShare,
   isCopied,
 }) {
-  // O criador do evento ou admin pode EDITAR A QUALQUER MOMENTO (Sem limite de tempo!)
   const canEdit = user && (show.created_by_id === user.id || isAdmin);
 
   const formattedDate = getDateInLocalTimezone(show.date).toLocaleDateString("pt-BR", {
@@ -49,10 +48,20 @@ export default function ShowCard({
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-bold text-white text-base md:text-lg truncate">{show.title}</h3>
               
-              {/* DESTAQUE DA CIDADE (SOLICITADO) */}
+              {/* DESTAQUE DO LOCAL E CIDADE */}
               {show.city && (
                 <span className="bg-[#a8f776]/15 border border-[#a8f776]/40 text-[#a8f776] text-[11px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide flex items-center gap-1 shrink-0">
                   <MapPin size={11} /> {show.city}
+                </span>
+              )}
+               {show.venue_name && (
+                <span className="bg-[#181818] border border-[#282828] text-white text-[11px] font-semibold px-2 py-0.5 rounded-md">
+                   📍 {show.venue_name}
+                </span>
+              )}
+               {show.genre && (
+                <span className="bg-[#2a2a2a] text-[#d0d0d0] text-[11px] font-medium px-2 py-0.5 rounded-md uppercase tracking-wide">
+                   {show.genre}
                 </span>
               )}
             </div>
@@ -62,11 +71,6 @@ export default function ShowCard({
               {show.time && (
                 <span className="flex items-center gap-1">
                   • <Clock size={12} className="text-[#a8f776]" /> {show.time}
-                </span>
-              )}
-              {(show.venue_name || show.address) && (
-                <span className="truncate">
-                  • {show.venue_name || show.address}
                 </span>
               )}
             </div>
@@ -162,7 +166,12 @@ export default function ShowCard({
                   )}
                   {show.venue_name && (
                     <div className="bg-[#181818] border border-[#282828] text-white text-xs font-semibold px-3 py-1.5 rounded-lg">
-                      📍 {show.venue_name}
+                      📍 LOCAL: {show.venue_name}
+                    </div>
+                  )}
+                  {show.genre && (
+                    <div className="bg-[#2a2a2a] text-[#d0d0d0] text-xs font-medium px-3 py-1.5 rounded-lg uppercase tracking-wide">
+                       ESTILO: {show.genre}
                     </div>
                   )}
                 </div>
@@ -216,7 +225,7 @@ export default function ShowCard({
                       rel="noreferrer"
                       className="bg-[#a8f776] text-black hover:bg-[#8fd862] font-bold text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 transition-colors"
                     >
-                      <Ticket size={15} /> Garantir Ingressos
+                      <Ticket size={15} /> Ingressos / Informações
                     </a>
                   )}
 
