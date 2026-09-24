@@ -209,7 +209,12 @@ export default function BandRegister() {
       };
       let saved;
       if (editingBand) {
-        const { data, error } = await supabase.from("bands").update(payload).eq("id", editingBand.id).select().single();
+        const { data, error } = await supabase
+          .from("bands")
+          .update({ ...payload, updated_date: new Date().toISOString() })
+          .eq("id", editingBand.id)
+          .select()
+          .single();
         if (error) throw error;
         saved = data;
         toast({ title: "Banda atualizada!" });

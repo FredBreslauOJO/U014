@@ -78,7 +78,10 @@ export default function AdminBandEdit() {
         }
         if (created) navigate(`/admin/bands/${created.id}`);
       } else {
-        const { error } = await supabase.from("bands").update(payload).eq("id", id);
+        const { error } = await supabase
+          .from("bands")
+          .update({ ...payload, updated_date: new Date().toISOString() })
+          .eq("id", id);
         if (error) {
           toast({ title: "Erro ao salvar banda", description: error.message, variant: "destructive" });
           return;
