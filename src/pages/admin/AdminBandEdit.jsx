@@ -7,6 +7,7 @@ import TagInput from "@/components/TagInput";
 import { GENRES } from "@/lib/genres";
 import AdminEditPage from "@/components/admin/AdminEditPage";
 import AdminImageField from "@/components/admin/AdminImageField";
+import { slugify } from "@/lib/slug";
 
 const INITIAL_FORM = {
   name: "",
@@ -65,11 +66,13 @@ export default function AdminBandEdit() {
     if (!form.name.trim()) return;
     setSaving(true);
     try {
+      const slug = form.slug || slugify(form.name);
+      const payload = { ...form, slug };
       if (isNew) {
-        const { data: created } = await supabase.from("bands").insert([form]).select().single();
+        const { data: created } = await supabase.from("bands").insert([payload]).select().single();
         if (created) navigate(`/admin/bands/${created.id}`);
       } else {
-        await supabase.from("bands").update(form).eq("id", id);
+        await supabase.from("bands").update(payload).eq("id", id);
         navigate("/admin/bands");
       }
     } finally {

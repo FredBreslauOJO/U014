@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import TagInput from "@/components/TagInput";
 import { GENRES } from "@/lib/genres";
 import { uploadImage } from "@/utils/upload";
+import { slugify } from "@/lib/slug";
 
 const emptyForm = () => ({
   name: "", bio: "", genres: [], performance_type: "ambos", city: "",
@@ -199,8 +200,10 @@ export default function BandRegister() {
     if (!form.name.trim()) { toast({ title: "Informe o nome da banda", variant: "destructive" }); return; }
     setSaving(true);
     try {
+      const slug = form.slug || slugify(form.name);
       const payload = { 
-        ...form, 
+        ...form,
+        slug,
         created_by_id: user.id,
         email: form.email ? form.email.trim() : user.email
       };
