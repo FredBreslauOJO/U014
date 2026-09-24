@@ -30,7 +30,7 @@ npm run dev
 ### Docker
 
 ```sh
-docker compose -f compose.yml up -d --build
+docker compose up -d --build
 ```
 
 ### VS Code
@@ -66,7 +66,26 @@ supabase db push                       # apply pending local migrations to the r
 
 ### Backups
 
-Dumps go through the CLI against the linked project. `supabase/backups/` is gitignored — dumps can contain real user data (emails, contact messages) and must never be committed.
+Dumps go through the CLI against the linked project. `.backups/` is gitignored — dumps can contain real user data (emails, contact messages, auth tokens) and must never be committed.
+
+#### Automated backup & restore
+
+```sh
+# one-step: backup from Supabase cloud and restore to local Supabase
+./scripts/backup-and-restore
+
+# or individual steps:
+./scripts/backup-and-restore backup              # export from cloud only
+./scripts/backup-and-restore restore-latest      # restore most recent backup
+./scripts/backup-and-restore restore dump.sql    # restore a specific file
+```
+
+**Prerequisites:**
+- Supabase CLI linked to project (via `supabase/config.toml`)
+- Local Supabase running: `supabase start`
+- `psql` installed locally (`postgresql-client`)
+
+#### Manual backups (CLI only)
 
 ```sh
 # schema only — safe to inspect/diff, no user data

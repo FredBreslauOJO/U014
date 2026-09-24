@@ -39,3 +39,6 @@ imagens_backup/
 *.py
 supabase/backups/
 .backups/
+
+.codegraph/
+.remember/
