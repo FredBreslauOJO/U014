@@ -8,6 +8,7 @@ import { GENRES } from "@/lib/genres";
 import AdminEditPage from "@/components/admin/AdminEditPage";
 import AdminImageField from "@/components/admin/AdminImageField";
 import { slugify } from "@/lib/slug";
+import { useToast } from "@/components/ui/use-toast";
 
 const INITIAL_FORM = {
   name: "",
@@ -24,6 +25,7 @@ export default function AdminBandEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isNew = id === "new";
+  const { toast } = useToast();
 
   const [form, setForm] = useState(INITIAL_FORM);
   const [profiles, setProfiles] = useState([]);
@@ -69,10 +71,18 @@ export default function AdminBandEdit() {
       const slug = form.slug || slugify(form.name);
       const payload = { ...form, slug };
       if (isNew) {
-        const { data: created } = await supabase.from("bands").insert([payload]).select().single();
+        const { data: created, error } = await supabase.from("bands").insert([payload]).select().single();
+        if (error) {
+          toast({ title: "Erro ao criar banda", description: error.message, variant: "destructive" });
+          return;
+        }
         if (created) navigate(`/admin/bands/${created.id}`);
       } else {
-        await supabase.from("bands").update(payload).eq("id", id);
+        const { error } = await supabase.from("bands").update(payload).eq("id", id);
+        if (error) {
+          toast({ title: "Erro ao salvar banda", description: error.message, variant: "destructive" });
+          return;
+        }
         navigate("/admin/bands");
       }
     } finally {
