@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Mail, Send, MessageSquare, MessageCircle, AlertTriangle } from "lucide-react";
+import { Send, MessageSquare, MessageCircle, AlertTriangle } from "lucide-react";
 import { supabase } from "@/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
