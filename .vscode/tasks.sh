@@ -6,4 +6,9 @@ docker compose down --timeout=0
 docker compose build
 docker compose up -d
 
-google-chrome --profile-directory=Default --app-id=fjjokaeaohhhdnjkcgnbngcjlkfghcnd
+supabase start
+
+CHROME_APP_ID=fjjokaeaohhhdnjkcgnbngcjlkfghcnd
+if [ -f "$HOME/.local/share/applications/chrome-$CHROME_APP_ID-Default.desktop" ]; then
+  google-chrome --profile-directory=Default --app-id="$CHROME_APP_ID"
+fi
