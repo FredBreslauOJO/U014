@@ -1,5 +1,6 @@
 export const config = { matcher: "/((?!api|assets|icons|splash|images|favicon|manifest\\.json|robots\\.txt|.*\\..*).*)" };
 
+const CANONICAL_ORIGIN = "https://www.underground014.com.br";
 const SITE_NAME = "Underground 014";
 const DEFAULT_DESCRIPTION = "Plataforma da cena underground local. Promova seu material, encontre parcerias, divulgue shows e junte a galera.";
 const RESERVED = new Set(["", "manifesto", "bands", "shows", "venues", "partners", "news", "threads", "contact", "my-band", "profile", "admin", "login", "register", "forgot-password", "reset-password"]);
@@ -13,7 +14,7 @@ const ROUTES = {
 };
 
 const escapeHtml = (value) => String(value || "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
-const truncate = (value, length = 200) => String(value || "").replace(/\s+/g, " ").trim().slice(0, length);
+const truncate = (value, length = 155) => String(value || "").replace(/\s+/g, " ").trim().slice(0, length);
 
 function socialImage(image, origin) {
   if (!image) return `${origin}/images/og-default.png`;
@@ -45,7 +46,7 @@ async function resolveEntity(url, supabaseUrl, supabaseKey) {
 }
 
 function tagsFor({ url, resolved }) {
-  const origin = url.origin;
+  const origin = CANONICAL_ORIGIN;
   const entity = resolved?.entity;
   const route = resolved?.route;
   const name = entity?.[route?.name] || SITE_NAME;
