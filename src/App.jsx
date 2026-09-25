@@ -17,11 +17,9 @@ import BandDetail from "@/pages/BandDetail";
 import BandRegister from "@/pages/BandRegister";
 import Shows from "@/pages/Shows";
 import Venues from "@/pages/Venues";
-import VenueDetail from "@/pages/VenueDetail";
 import Partners from "@/pages/Partners";
 import News from "@/pages/News";
 import Threads from "@/pages/Threads";
-import ThreadDetail from "@/pages/ThreadDetail";
 import Contact from "@/pages/Contact";
 import Profile from "@/pages/Profile";
 import Login from "@/pages/Login";
@@ -29,6 +27,7 @@ import Register from "@/pages/Register";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import PageNotFound from "@/lib/PageNotFound";
+import PublicEntityDetail from "@/pages/PublicEntityDetail";
 
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -61,12 +60,15 @@ export default function App() {
               <Route path="/bands" element={<Bands />} />
               <Route path="/bands/:slug" element={<BandDetail />} />
               <Route path="/shows" element={<Shows />} />
+              <Route path="/shows/:slug" element={<PublicEntityDetail type="shows" />} />
               <Route path="/venues" element={<Venues />} />
-              <Route path="/venues/:id" element={<VenueDetail />} />
+              <Route path="/venues/:slug" element={<PublicEntityDetail type="venues" />} />
               <Route path="/partners" element={<Partners />} />
+              <Route path="/partners/:slug" element={<PublicEntityDetail type="partners" />} />
               <Route path="/news" element={<News />} />
+              <Route path="/news/:slug" element={<PublicEntityDetail type="news" />} />
               <Route path="/threads" element={<Threads />} />
-              <Route path="/threads/:id" element={<ThreadDetail />} />
+              <Route path="/threads/:slug" element={<PublicEntityDetail type="threads" />} />
               <Route path="/contact" element={<Contact />} />
 
               {/* Rotas Protegidas */}

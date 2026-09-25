@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { Newspaper, Plus, Trash2, Calendar, Share2, ExternalLink, ImageIcon, X, MessageSquare, Send } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
@@ -9,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatUrl } from "@/lib/supabaseStorage";
+import { entityPath } from "@/lib/slug";
+import SeoMeta from "@/components/SeoMeta";
 
 // Compressão Agressiva via Canvas (WebP, Max 1000px)
 const processAndUploadImage = async (file) => {
@@ -163,6 +166,7 @@ export default function News() {
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1000px] mx-auto">
+      <SeoMeta title="Underground 014 | Notícias" description="Notícias e lançamentos da cena underground local." path="/news" />
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-2"><Newspaper className="text-[#a8f776]" /> Notícias</h1>
@@ -231,7 +235,7 @@ export default function News() {
                       <button onClick={(e) => removeNews(n.id, e)} className="text-[#404040] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
                     )}
                   </div>
-                  <h2 className="text-xl font-bold text-white group-hover:text-[#a8f776] transition-colors">{n.title}</h2>
+                  <h2 className="text-xl font-bold text-white group-hover:text-[#a8f776] transition-colors"><Link to={entityPath("news", n)} onClick={(event) => event.stopPropagation()}>{n.title}</Link></h2>
                   <p className="text-sm text-[#b0b0b0] mt-2 whitespace-pre-wrap line-clamp-3">{n.content}</p>
                 </div>
                 <p className="text-xs text-[#606060] mt-4 font-medium">— {n.author_name || "Anônimo"}</p>

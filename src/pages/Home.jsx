@@ -10,6 +10,7 @@ import Logo from "@/components/Logo";
 import { bandUrl } from "@/lib/slug";
 import { getDateInLocalTimezone } from "@/lib/date";
 import { formatUrl } from "@/lib/supabaseStorage";
+import SeoMeta from "@/components/SeoMeta";
 
 const BRAZIL_TIME_ZONE = "America/Sao_Paulo";
 
@@ -120,6 +121,10 @@ export default function Home() {
 
   return (
     <div className="relative px-4 md:px-8 py-6 max-w-[1400px] mx-auto overflow-hidden">
+      <SeoMeta
+        title="Underground 014 | A cena underground local"
+        description="Plataforma da cena underground local. Promova seu material, encontre parcerias, divulgue shows e junte a galera."
+      />
       <style>{`
         @keyframes organicGlow {
           0%, 100% {

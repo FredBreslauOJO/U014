@@ -18,3 +18,21 @@ export const formatUrl = (url) => {
     return cleaned;
   }
 };
+
+export const getSocialImageUrl = (url) => {
+  const absolute = formatUrl(url);
+  if (!absolute) return "";
+  const storageOrigin = getSupabaseStorageOrigin();
+  try {
+    const parsed = new URL(absolute);
+    if (parsed.origin !== storageOrigin || !parsed.pathname.includes("/storage/v1/object/public/")) return parsed.href;
+    parsed.pathname = parsed.pathname.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
+    parsed.searchParams.set("width", "1200");
+    parsed.searchParams.set("height", "630");
+    parsed.searchParams.set("resize", "cover");
+    parsed.searchParams.set("format", "origin");
+    return parsed.href;
+  } catch {
+    return absolute;
+  }
+};

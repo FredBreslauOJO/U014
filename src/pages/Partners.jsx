@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Search, Briefcase, Plus, Phone, Instagram, ExternalLink, Edit2, Trash2, X } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
@@ -6,6 +7,8 @@ import { useIsAdmin } from "@/lib/useIsAdmin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { entityPath } from "@/lib/slug";
+import SeoMeta from "@/components/SeoMeta";
 
 const CATEGORIES = [
   "Todos",
@@ -136,6 +139,7 @@ export default function Partners() {
 
   return (
     <div className="px-4 md:px-8 py-8 max-w-[1400px] mx-auto min-h-screen">
+      <SeoMeta title="Underground 014 | Parceiros" description="Profissionais e serviços que fortalecem a cena underground local." path="/partners" />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-3">
@@ -254,6 +258,7 @@ export default function Partners() {
                 </div>
 
                 <div className="flex items-center gap-2 pt-3 border-t border-[#1a1a1a] flex-wrap">
+                  <Link to={entityPath("partners", p)} className="text-xs text-[#a8f776] hover:underline">Ver perfil</Link>
                   {p.whatsapp && (
                     <a
                       href={`https://wa.me/${p.whatsapp.replace(/\D/g, "")}`}

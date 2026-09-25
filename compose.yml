@@ -8,6 +8,7 @@ services:
       VITE_DEV_HOST: 0.0.0.0
       VITE_DEV_PORT: "5173"
       VITE_USE_TRAEFIK: "true"
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
     volumes:
       - .:/app
       - node_modules:/app/node_modules

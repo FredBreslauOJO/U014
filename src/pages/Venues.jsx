@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import StarRating from "@/components/StarRating";
+import SeoMeta from "@/components/SeoMeta";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -69,6 +70,7 @@ export default function Venues() {
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1200px] mx-auto">
+      <SeoMeta title="Underground 014 | Casas de shows" description="Casas de shows e espaços da cena underground local." path="/venues" />
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-2"><Building2 className="text-[#a8f776]" /> Casas de Shows</h1>
@@ -104,7 +106,7 @@ export default function Venues() {
         {venues.map((v) => {
           const r = ratingFor(v.id);
           return (
-          <Link key={v.id} to={`/venues/${v.id}`} className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-4 group hover:bg-[#181818] hover:border-[#2a2a2a] transition-colors block">
+          <Link key={v.id} to={`/venues/${v.slug || v.id}`} className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-4 group hover:bg-[#181818] hover:border-[#2a2a2a] transition-colors block">
             <div className="flex items-start justify-between">
               <div className="w-12 h-12 rounded bg-[#1a1a1a] flex items-center justify-center shrink-0">
                 <Building2 size={20} className="text-[#a8f776]" />

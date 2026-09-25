@@ -42,3 +42,6 @@ supabase/backups/
 
 .codegraph/
 .remember/
+.omx/
+.unlazy/
+GATES.md

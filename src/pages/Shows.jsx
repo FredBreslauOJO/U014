@@ -16,6 +16,7 @@ import TagInput from "@/components/TagInput";
 import ShowCard from "@/components/ShowCard";
 import { GENRES } from "@/lib/genres";
 import { getDateInLocalTimezone } from "@/lib/date";
+import SeoMeta from "@/components/SeoMeta";
 
 const normalizeCity = (raw) => {
   if (!raw) return "";
@@ -255,6 +256,7 @@ export default function Shows() {
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1200px] mx-auto">
+      <SeoMeta title="Underground 014 | Shows e eventos" description="Agenda de shows e eventos da cena underground local." path="/shows" />
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-2">
@@ -446,7 +448,7 @@ export default function Shows() {
                 handleShare(
                   s.title,
                   `Show: ${s.title} - ${getDateInLocalTimezone(s.date).toLocaleDateString("pt-BR")}`,
-                  `${window.location.origin}/shows?show=${s.id}`,
+                  `${window.location.origin}/shows/${s.slug || s.id}`,
                   s.id
                 )
               }
@@ -475,7 +477,7 @@ export default function Shows() {
                     handleShare(
                       s.title,
                       `Show: ${s.title} - ${getDateInLocalTimezone(s.date).toLocaleDateString("pt-BR")}`,
-                      `${window.location.origin}/shows?show=${s.id}`,
+                      `${window.location.origin}/shows/${s.slug || s.id}`,
                       s.id
                     )
                   }

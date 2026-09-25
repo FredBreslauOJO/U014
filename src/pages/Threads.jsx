@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import HeatFlames from "@/components/HeatFlames";
 import { collectThreadDates, computeHeat } from "@/lib/threadHeat";
 import { formatUrl } from "@/lib/supabaseStorage";
+import SeoMeta from "@/components/SeoMeta";
 
 const categories = ["geral", "shows", "parcerias", "releases", "off-topic"];
 
@@ -146,6 +147,7 @@ export default function Threads() {
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1100px] mx-auto">
+      <SeoMeta title="Underground 014 | Threads" description="Conversas e parcerias da cena underground local." path="/threads" />
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-black text-white tracking-tight">Threads</h1>
@@ -162,7 +164,7 @@ export default function Threads() {
         {threads.map((t) => {
           const heat = computeHeat(collectThreadDates(childrenMap, t.id, t.created_date));
           return (
-          <Link key={t.id} to={`/threads/${t.id}`} className="block bg-[#121212] border border-[#1e1e1e] rounded-lg p-4 hover:bg-[#181818] transition-colors group">
+          <Link key={t.id} to={`/threads/${t.slug || t.id}`} className="block bg-[#121212] border border-[#1e1e1e] rounded-lg p-4 hover:bg-[#181818] transition-colors group">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center shrink-0 text-[#a8f776] font-bold text-sm overflow-hidden">
                 {(t.author_name || "?").charAt(0).toUpperCase()}

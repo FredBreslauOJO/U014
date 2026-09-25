@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generatePressKitPDF } from "@/utils/generatePressKitPDF";
 import { useToast } from "@/components/ui/use-toast";
-import { formatUrl } from "@/lib/supabaseStorage";
+import { formatUrl, getSocialImageUrl } from "@/lib/supabaseStorage";
+import { bandUrl } from "@/lib/slug";
+import SeoMeta from "@/components/SeoMeta";
 
 export default function BandDetail() {
   const { id, slug } = useParams();
@@ -85,18 +87,18 @@ export default function BandDetail() {
   };
 
   const handleShareBand = async () => {
-    const bandUrl = `${window.location.origin}/${band.slug || band.id}`;
+    const shareUrl = `${window.location.origin}${bandUrl(band)}`;
     if (navigator.share) {
       try {
         await navigator.share({
           title: `${band.name} - Underground 014`,
           text: `Confira a página oficial da banda ${band.name}!`,
-          url: bandUrl,
+          url: shareUrl,
         });
         return;
       } catch (e) {}
     }
-    await navigator.clipboard.writeText(bandUrl);
+    await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
     toast({ title: "Link do perfil copiado!" });
@@ -166,6 +168,13 @@ export default function BandDetail() {
 
   return (
     <div className="pb-10">
+      <SeoMeta
+        title={`Underground 014 | A cena underground local | ${band.name}`}
+        description={band.bio || `Conheça ${band.name}, artista da cena underground local.`}
+        path={bandUrl(band)}
+        image={getSocialImageUrl(band.photo_url || band.logo_url)}
+        imageAlt={`Foto de ${band.name}`}
+      />
       <div className="relative h-[320px] md:h-[480px] lg:h-[520px] overflow-hidden">
         <div className="absolute inset-0">
           {band.photo_url ? (

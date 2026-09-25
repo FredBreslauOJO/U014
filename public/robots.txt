@@ -1,2 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /profile
+Disallow: /my-band
+Sitemap: https://www.underground014.com.br/sitemap.xml
