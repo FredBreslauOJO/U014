@@ -87,7 +87,7 @@ export default function BandDetail() {
   };
 
   const handleShareBand = async () => {
-    const shareUrl = `${window.location.origin}${bandUrl(band)}`;
+    const shareUrl = `${window.location.origin}/${encodeURIComponent(band.slug || band.id)}`;
     if (navigator.share) {
       try {
         await navigator.share({
