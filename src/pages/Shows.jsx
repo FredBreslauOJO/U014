@@ -57,7 +57,7 @@ export default function Shows() {
       { data: bData },
       { data: vData }
     ] = await Promise.all([
-      supabase.from('shows').select('*').order('date', { ascending: true }),
+      supabase.from('shows').select('*').neq('status', 'disabled').order('date', { ascending: true }),
       supabase.from('bands').select('id, name'),
       supabase.from('venues').select('id, name')
     ]);

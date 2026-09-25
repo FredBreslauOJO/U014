@@ -88,6 +88,7 @@ export default function Home() {
     supabase
       .from("shows")
       .select("*")
+      .neq("status", "disabled")
       .gte("date", todayInBrazil)
       .order("date", { ascending: true })
       .limit(50)

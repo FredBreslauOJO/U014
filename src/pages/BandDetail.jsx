@@ -64,7 +64,7 @@ export default function BandDetail() {
 
     const [tRes, sRes, nRes] = await Promise.all([
       supabase.from("tracks").select("*").or(`band_id.eq.${bandId},band_id.eq.${b.slug}`),
-      supabase.from("shows").select("*").order("date", { ascending: false }),
+      supabase.from("shows").select("*").neq("status", "disabled").order("date", { ascending: false }),
       supabase.from("notes").select("*").eq("band_id", bandId).order("created_date", { ascending: false }),
     ]);
 
