@@ -15,7 +15,7 @@ export async function uploadImage(file, folder = "uploads") {
     .from("underground-images")
     .upload(fileName, compressedFile, {
       contentType: "image/webp",
-      upsert: true,
+      upsert: false,
     });
 
   if (error) {
