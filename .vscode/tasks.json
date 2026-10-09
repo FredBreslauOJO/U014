@@ -2,12 +2,11 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Docker: Rebuild & Up",
+      "label": "Docker Run",
       "type": "shell",
-      "command": "docker compose -f compose.yml up -d --build",
+      "command": "docker compose up -d --build",
       "group": {
-        "kind": "build",
-        "isDefault": true
+        "kind": "build"
       },
       "problemMatcher": [],
       "presentation": {
@@ -19,9 +18,9 @@
       }
     },
     {
-      "label": "Docker: Logs",
+      "label": "Docker Logs",
       "type": "shell",
-      "command": "docker compose -f compose.yml logs -f app",
+      "command": "docker compose logs -f",
       "group": {
         "kind": "test",
         "isDefault": true
@@ -34,6 +33,86 @@
         "reveal": "always",
         "showReuseMessage": false
       }
+    },
+    {
+      "label": "Claude",
+      "type": "shell",
+      "command": "claude --allow-dangerously-skip-permissions --dangerously-skip-permissions --model sonnet",
+      "icon": {
+        "id": "robot"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "clear": true,
+        "focus": false,
+        "panel": "dedicated",
+        "reveal": "always",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "Codex",
+      "type": "shell",
+      "command": "codex --dangerously-bypass-approvals-and-sandbox --no-daemon -m gpt-6-sol",
+      "icon": {
+        "id": "robot"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "clear": true,
+        "focus": false,
+        "panel": "dedicated",
+        "reveal": "always",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "Antigravity",
+      "type": "shell",
+      "command": "agy --dangerously-skip-permissions",
+      "icon": {
+        "id": "robot"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "clear": true,
+        "focus": false,
+        "panel": "dedicated",
+        "reveal": "always",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "OpenCode",
+      "type": "shell",
+      "command": "opencode --auto --model opencode/nemotron-3-ultra-free",
+      "icon": {
+        "id": "robot"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "clear": true,
+        "focus": false,
+        "panel": "dedicated",
+        "reveal": "always",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "Dev",
+      "dependsOn": [
+        "Claude",
+        "Codex",
+        "Antigravity",
+        "OpenCode",
+        "Docker Run"
+      ],
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
     }
   ]
 }
