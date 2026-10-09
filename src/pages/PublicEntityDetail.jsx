@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, CalendarDays, ExternalLink, MapPin } from "lucide-react";
+import { ArrowLeft, CalendarDays, ExternalLink, MapPin, Pencil } from "lucide-react";
 import { supabase } from "@/supabase";
+import { useAuth } from "@/lib/AuthContext";
+import { useIsAdmin } from "@/lib/useIsAdmin";
 import { entityPath } from "@/lib/slug";
 import { formatUrl, getSocialImageUrl } from "@/lib/supabaseStorage";
 import SeoMeta from "@/components/SeoMeta";
@@ -17,6 +19,8 @@ const CONFIG = {
 export default function PublicEntityDetail({ type }) {
   const { slug } = useParams();
   const config = CONFIG[type];
+  const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const [entity, setEntity] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -39,6 +43,7 @@ export default function PublicEntityDetail({ type }) {
   const description = entity[config.description] || `${config.label} na Underground 014.`;
   const path = entityPath(type, entity);
   const image = entity[config.image];
+  const canEditShow = type === "shows" && user && (entity.created_by_id === user.id || isAdmin);
 
   return (
     <main className="max-w-[900px] mx-auto px-4 md:px-8 py-8">
@@ -55,6 +60,16 @@ export default function PublicEntityDetail({ type }) {
           {entity.ticket_url && <a className="mt-6 inline-flex items-center gap-2 text-sm text-[#a8f776]" href={entity.ticket_url} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Ingressos</a>}
           {entity.external_link && <a className="mt-6 inline-flex items-center gap-2 text-sm text-[#a8f776]" href={entity.external_link} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Link original</a>}
           {entity.portfolio_url && <a className="mt-6 inline-flex items-center gap-2 text-sm text-[#a8f776]" href={entity.portfolio_url} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Portfólio</a>}
+          {canEditShow && (
+            <div className="mt-6 pt-4 border-t border-[#1e1e1e]">
+              <Link
+                to={`/shows?show=${entity.id}&edit=${entity.id}`}
+                className="inline-flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-lg border border-[#2e2e2e] bg-[#141414] text-white hover:bg-[#1e1e1e] transition-colors"
+              >
+                <Pencil size={14} className="text-[#a8f776]" /> Editar Show
+              </Link>
+            </div>
+          )}
         </div>
       </article>
     </main>
