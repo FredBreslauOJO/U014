@@ -32,7 +32,7 @@ export default function Shows() {
   const [bands, setBands] = useState([]);
   const [venues, setVenues] = useState([]);
   const { user } = useAuth();
-  const { isAdmin } = useIsAdmin();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
@@ -43,6 +43,8 @@ export default function Shows() {
 
   const [searchParams] = useSearchParams();
   const highlightedShowId = searchParams.get("show") || searchParams.get("id");
+  const editShowId = searchParams.get("edit");
+  const editHandledRef = useRef(false);
   const showRefs = useRef({});
   const [copiedId, setCopiedId] = useState(null);
 
@@ -162,6 +164,15 @@ export default function Shows() {
     });
     setOpen(true);
   };
+
+  // Abre o modal de edição se a página foi aberta via botão "Editar" (?edit=ID)
+  useEffect(() => {
+    if (!editShowId || editHandledRef.current || !user || adminLoading || shows.length === 0) return;
+    const target = shows.find((s) => String(s.id) === editShowId);
+    if (!target) return;
+    editHandledRef.current = true;
+    if (target.created_by_id === user.id || isAdmin) openEdit(target);
+  }, [editShowId, shows, user, isAdmin, adminLoading]);
 
   const save = async () => {
     if (!form.title.trim() || !form.date) { 

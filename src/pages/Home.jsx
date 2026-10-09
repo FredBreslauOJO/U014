@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, MapPin, Flame, ChevronRight, Briefcase, List, GalleryHorizontal, Megaphone } from "lucide-react";
+import { CalendarDays, MapPin, Flame, ChevronRight, Briefcase, List, GalleryHorizontal, Megaphone, Pencil } from "lucide-react";
 import { supabase } from "@/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import { usePlayer } from "@/lib/playerContext";
@@ -66,6 +66,21 @@ const getShowBrazilDateTimeKey = (show) => {
   }
 
   return Number(`${year}${month}${day}${hour}${minute}`);
+};
+
+// Botão de edição exibido apenas para quem criou o show (fica fora do <Link> do card)
+const ShowEditButton = ({ show, user }) => {
+  if (!user || show.created_by_id !== user.id) return null;
+  return (
+    <Link
+      to={`/shows?show=${show.id}&edit=${show.id}`}
+      title="Editar show"
+      aria-label={`Editar ${show.title}`}
+      className="absolute top-2 right-2 z-10 bg-black/70 hover:bg-black border border-[#2e2e2e] text-white p-1.5 rounded-md transition-colors"
+    >
+      <Pencil size={13} className="text-[#a8f776]" />
+    </Link>
+  );
 };
 
 export default function Home() {
@@ -292,7 +307,8 @@ export default function Home() {
           {showsView === "list" ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {homeShows.map((s) => (
-                <Link key={s.id} to={`/shows?show=${s.id}`} className="bg-[#121212] border border-[#1e1e1e] rounded-lg p-4 hover:bg-[#181818] transition-colors">
+                <div key={s.id} className="relative">
+                <Link to={`/shows?show=${s.id}`} className="block h-full bg-[#121212] border border-[#1e1e1e] rounded-lg p-4 hover:bg-[#181818] transition-colors">
                   <div className="flex items-start gap-3">
                     <div className="w-12 h-12 rounded bg-[#1a1a1a] flex flex-col items-center justify-center shrink-0">
                       <span className="text-[10px] text-[#707070] uppercase">{getDateInLocalTimezone(s.date).toLocaleDateString("pt-BR", { month: "short" })}</span>
@@ -307,6 +323,8 @@ export default function Home() {
                     </div>
                   </div>
                 </Link>
+                <ShowEditButton show={s} user={user} />
+                </div>
               ))}
               {upcomingShows.length === 0 && <p className="text-[#505050] text-sm col-span-full">Nenhum show agendado.</p>}
             </div>
@@ -316,7 +334,8 @@ export default function Home() {
                 const showImage = s.flyer_url || s.image_url || "";
 
                 return (
-                  <Link key={s.id} to={`/shows?show=${s.id}`} className="group bg-[#121212] border border-[#1e1e1e] rounded-xl overflow-hidden hover:bg-[#181818] transition-colors">
+                  <div key={s.id} className="relative">
+                  <Link to={`/shows?show=${s.id}`} className="group block h-full bg-[#121212] border border-[#1e1e1e] rounded-xl overflow-hidden hover:bg-[#181818] transition-colors">
                     <div className="aspect-[4/3] bg-[#151515] relative overflow-hidden">
                       {showImage ? (
                         <img
@@ -348,6 +367,8 @@ export default function Home() {
                       </div>
                     </div>
                   </Link>
+                  <ShowEditButton show={s} user={user} />
+                  </div>
                 );
               })}
               {upcomingShows.length === 0 && <p className="text-[#505050] text-sm col-span-full">Nenhum show agendado.</p>}
